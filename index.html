@@ -341,11 +341,17 @@
     .dow-row, .grid{ grid-template-columns:repeat(7,1fr); gap:5px; }
     .dow-row div:last-child{ display:none; }
 
-    .tile{ min-height:64px; padding:4px 5px; border-radius:7px; gap:1px; }
-    .tile .daynum{ font-size:10px; margin-bottom:0; }
-    .tile .pnl{ font-size:10px; line-height:1.15; }
-    .tile .pnl-krw{ font-size:8px; }
-    .tile .trades{ font-size:8px; margin-top:1px; }
+    /* Fixed (not min-) height + overflow:hidden so every day cell is exactly
+       the same size regardless of how long its $ / 원 / 회 text is — a long
+       won amount wrapping to 2-3 lines was what made rows grow unevenly and
+       the grid look "뒤틀린" on phone width. The 원 sub-line is dropped from
+       the day cells entirely on mobile (still shown in the weekly strip,
+       month header and stats) since it's the line most likely to overflow. */
+    .tile{ height:56px; padding:4px 3px; border-radius:7px; gap:0; overflow:hidden; }
+    .tile .daynum{ font-size:10px; margin-bottom:0; white-space:nowrap; }
+    .tile .pnl{ font-size:9px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:-0.2px; }
+    .tile .pnl-krw{ display:none; }
+    .tile .trades{ font-size:8px; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     .week-tile{
       grid-column:1 / -1;

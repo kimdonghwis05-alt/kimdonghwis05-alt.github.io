@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Trading Journal</title>
+<style>
+  :root{
+    --bg:#0B0E14;
+    --panel:#12151d;
+    --tile-default:#262B3A;
+    --tile-out:#14161D;
+    --tile-green:#1E3A2F;
+    --tile-red:#3A1E1E;
+    --tile-week:#1B1F2A;
+    --border:#3A3F4B;
+    --txt-light:#E5E7EB;
+    --txt-dim:#5B6270;
+    --txt-header:#94A3B8;
+    --green:#4ADE80;
+    --red:#F87171;
+    --accent:#60A5FA;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--txt-light);
+    font-family:var(--font);
+    padding:28px 20px 60px;
+  }
+  #app{max-width:1180px;margin:0 auto;}
+
+  header{margin-bottom:18px;}
+  .title-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:10px;
+  }
+  .month-nav{display:flex;align-items:center;gap:10px;}
+  .month-nav h1{font-size:26px;font-weight:700;margin:0;min-width:150px;color:#fff;}
+  .navbtn{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    color:var(--txt-light);
+    border-radius:8px;
+    width:34px;height:34px;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .navbtn:hover{border-color:var(--accent);color:var(--accent);}
+  #todayBtn{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    color:var(--txt-header);
+    border-radius:8px;
+    padding:0 14px;height:34px;
+    font-size:13px;cursor:pointer;
+  }
+  #todayBtn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .month-pnl{text-align:right;}
+  .month-pnl .label{font-size:11px;color:var(--txt-header);margin-bottom:2px;}
+  .month-pnl .value{font-size:26px;font-weight:700;line-height:1.15;}
+  .month-pnl .value-krw{font-size:18px;font-weight:700;color:var(--txt-header);margin-top:2px;}
+  .pos{color:var(--green);}
+  .neg{color:var(--red);}
+  .zero{color:var(--txt-dim);}
+
+  .toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding-top:10px;border-top:1px solid #1c2029;
+  }
+  .toolbar button, .toolbar label{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    color:var(--txt-light);
+    border-radius:8px;
+    padding:7px 12px;
+    font-size:12px;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .toolbar button:hover, .toolbar label:hover{border-color:var(--accent);color:var(--accent);}
+  .toolbar .hint{font-size:11px;color:var(--txt-dim);}
+  .rate-box{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:5px 10px;
+    font-size:12px;
+    color:var(--txt-header);
+  }
+  .rate-box input{
+    width:78px;
+    background:#0F1219;border:1px solid var(--border);border-radius:6px;
+    color:var(--txt-light);padding:4px 6px;font-size:12px;
+  }
+  .rate-box input:focus{outline:none;border-color:var(--accent);}
+  #rateStatus{font-size:10px;color:var(--txt-dim);}
+
+  .dow-row{
+    display:grid;
+    grid-template-columns:repeat(7,1fr) 0.9fr;
+    gap:8px;
+    padding:0 2px;
+    margin-bottom:8px;
+  }
+  .dow-row div{
+    text-align:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--txt-header);
+    letter-spacing:.03em;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr) 0.9fr;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .tile{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    border-radius:10px;
+    min-height:132px;
+    padding:8px 10px;
+    cursor:pointer;
+    transition:border-color .12s, transform .12s;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .tile:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .tile.out{background:var(--tile-out);cursor:default;}
+  .tile.out:hover{border-color:var(--border);transform:none;}
+  .tile.green{background:var(--tile-green);}
+  .tile.red{background:var(--tile-red);}
+  .tile .daynum{font-size:13px;font-weight:700;color:var(--txt-light);margin-bottom:2px;}
+  .tile .pnl{font-size:14px;font-weight:700;line-height:1.2;}
+  .tile .pnl-krw{font-size:12px;font-weight:700;color:var(--txt-header);}
+  .tile .trades{font-size:11px;color:var(--txt-dim);margin-top:2px;}
+
+  .week-tile{
+    background:var(--tile-week);
+    border:1px solid var(--border);
+    border-radius:10px;
+    min-height:132px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;
+  }
+  .week-tile .w-usd{font-size:13px;font-weight:700;}
+  .week-tile .w-krw{font-size:12px;font-weight:700;color:var(--txt-header);}
+
+  .legend{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:26px;}
+  .legend span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--txt-header);}
+  .sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--border);display:inline-block;}
+  .sw.green{background:var(--tile-green);}
+  .sw.red{background:var(--tile-red);}
+  .sw.default{background:var(--tile-default);}
+  .sw.out{background:var(--tile-out);}
+
+  .stats{
+    background:var(--panel);
+    border:1px solid #1c2029;
+    border-radius:12px;
+    padding:18px 22px;
+    margin-bottom:22px;
+  }
+  .stats h2{font-size:14px;margin:0 0 14px;color:#fff;}
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:16px 20px;
+  }
+  .stat-item .label{font-size:11px;color:var(--txt-header);margin-bottom:3px;}
+  .stat-item .value{font-size:20px;font-weight:700;color:var(--accent);line-height:1.25;}
+  .stat-item .value.pos{color:var(--green);}
+  .stat-item .value.neg{color:var(--red);}
+  .stat-item .value-krw{font-size:13px;font-weight:600;color:var(--txt-header);margin-top:2px;}
+
+  .more-stats-toggle{
+    display:flex;align-items:center;gap:6px;
+    margin-top:18px;padding-top:14px;border-top:1px solid #1c2029;
+    background:none;border-left:none;border-right:none;border-bottom:none;
+    color:var(--accent);font-size:12px;cursor:pointer;width:100%;text-align:left;
+  }
+  .more-stats-toggle .arrow{transition:transform .15s;font-size:10px;}
+  .more-stats-toggle.open .arrow{transform:rotate(90deg);}
+  .secondary-stats{margin-top:16px;}
+  .secondary-stats[hidden]{display:none;}
+
+  .chart-card{
+    background:var(--panel);
+    border:1px solid #1c2029;
+    border-radius:12px;
+    padding:18px 22px 14px;
+    margin-bottom:22px;
+  }
+  .chart-card-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    flex-wrap:wrap;gap:10px;margin-bottom:10px;
+  }
+  .chart-card h2{font-size:14px;margin:0 0 2px;color:#fff;}
+  .chart-card .sub{font-size:11px;color:var(--txt-dim);}
+  .chart-tabs{display:flex;gap:4px;background:#0F1219;border:1px solid var(--border);border-radius:8px;padding:3px;flex:none;}
+  .chart-tab{
+    background:none;border:none;border-radius:6px;
+    color:var(--txt-header);font-size:12px;padding:6px 14px;cursor:pointer;
+  }
+  .chart-tab.active{background:var(--tile-default);color:var(--txt-light);}
+  .chart-tab:hover:not(.active){color:var(--txt-light);}
+  .chart-wrap{position:relative;width:100%;}
+  .chart-wrap svg{display:block;width:100%;height:auto;overflow:visible;}
+  .chart-gridline{stroke:#1c2029;stroke-width:1;shape-rendering:crispEdges;}
+  .chart-zeroline{stroke:#2a2f3d;stroke-width:1;shape-rendering:crispEdges;}
+  .chart-axis-text{font-size:10px;fill:var(--txt-dim);font-family:var(--font);}
+  .chart-crosshair{stroke:var(--txt-dim);stroke-width:1;pointer-events:none;opacity:0;}
+  .chart-hit{fill:transparent;}
+  .chart-endlabel-usd{font-size:12px;font-weight:700;font-family:var(--font);}
+  .chart-endlabel-krw{font-size:11px;font-weight:600;fill:var(--txt-header);font-family:var(--font);}
+  .chart-tooltip{
+    position:absolute;
+    display:none;
+    background:#161a24;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 11px;
+    font-size:11px;
+    color:var(--txt-header);
+    pointer-events:none;
+    white-space:nowrap;
+    transform:translate(-50%,-115%);
+    z-index:5;
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+  }
+  .chart-tooltip .date{color:var(--txt-light);font-weight:700;margin-bottom:4px;}
+  .chart-tooltip .row{display:flex;justify-content:space-between;gap:14px;}
+  .chart-tooltip .row .k{color:var(--txt-dim);}
+  .chart-tooltip .row .v{font-weight:700;color:var(--txt-light);}
+
+  .rdist-rows{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+  .rdist-row{display:flex;align-items:center;gap:10px;}
+  .rdist-row.zero-split{margin:4px 0;padding:5px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);}
+  .rdist-row .rlabel{
+    width:76px;flex:none;font-size:10px;color:var(--txt-header);
+    text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-0.2px;
+  }
+  .rdist-row .rtrack{flex:1;height:14px;background:#0F1219;border-radius:3px;overflow:hidden;position:relative;}
+  .rdist-row .rbar{height:100%;border-radius:0 3px 3px 0;min-width:2px;transition:width .2s;}
+  .rdist-row .rbar.loss{background:var(--red);}
+  .rdist-row .rbar.win{background:var(--green);}
+  .rdist-row .rbar.even{background:var(--accent);}
+  .rdist-row.zero-split .rlabel{color:var(--accent);font-weight:700;}
+  .rdist-row .rcount{width:22px;flex:none;font-size:11px;font-weight:700;color:var(--txt-light);font-variant-numeric:tabular-nums;}
+
+  .modal-backdrop{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.55);
+    align-items:center;justify-content:center;
+    z-index:50;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:#161a24;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px 24px;
+    width:360px;
+  }
+  .modal h2{margin:0 0 14px;font-size:16px;color:#fff;}
+  .modal label{
+    display:block;font-size:12px;color:var(--txt-header);margin-bottom:14px;
+  }
+  .modal input{
+    display:block;width:100%;margin-top:6px;
+    background:#0F1219;border:1px solid var(--border);border-radius:8px;
+    color:var(--txt-light);padding:9px 10px;font-size:14px;
+  }
+  .modal input:focus{outline:none;border-color:var(--accent);}
+  .modal-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px;}
+  .modal-actions button{
+    flex:1;border-radius:8px;padding:9px 10px;font-size:13px;cursor:pointer;border:1px solid var(--border);
+  }
+  .modal-actions .ghost{background:transparent;color:var(--txt-header);}
+
+  .trade-rows{max-height:260px;overflow-y:auto;margin-bottom:4px;padding-right:2px;}
+  .trade-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .trade-row .idx{font-size:11px;color:var(--txt-dim);width:16px;flex:none;text-align:right;}
+  .trade-row input{
+    flex:1;margin-top:0;
+    background:#0F1219;border:1px solid var(--border);border-radius:8px;
+    color:var(--txt-light);padding:8px 9px;font-size:13px;
+  }
+  .trade-row input:focus{outline:none;border-color:var(--accent);}
+  .trade-row .r-hint{font-size:11px;color:var(--txt-dim);width:56px;flex:none;text-align:right;}
+  .trade-row .remove-row{
+    flex:none;width:26px;height:26px;border-radius:6px;
+    background:transparent;border:1px solid var(--border);color:var(--txt-dim);
+    cursor:pointer;font-size:14px;line-height:1;padding:0;
+  }
+  .trade-row .remove-row:hover{border-color:var(--red);color:var(--red);}
+  .add-trade-btn{
+    width:100%;padding:8px;border-radius:8px;
+    background:transparent;border:1px dashed var(--border);color:var(--accent);
+    font-size:12px;cursor:pointer;margin-bottom:12px;
+  }
+  .add-trade-btn:hover{border-color:var(--accent);background:rgba(96,165,250,.08);}
+  .modal-summary{
+    font-size:12px;color:var(--txt-header);
+    background:#0F1219;border:1px solid var(--border);border-radius:8px;
+    padding:9px 11px;text-align:center;
+  }
+  .modal-summary b{color:var(--txt-light);}
+  .modal-actions .ghost:hover{border-color:var(--red);color:var(--red);}
+  .modal-actions .primary{background:var(--accent);border-color:var(--accent);color:#0B0E14;font-weight:700;}
+  .modal-actions .primary:hover{opacity:.9;}
+
+  footer{margin-top:22px;font-size:11px;color:var(--txt-dim);line-height:1.6;}
+
+  /* ---- phone-width layout (~640px and below) ---- */
+  @media (max-width: 640px){
+    body{padding:18px 12px 44px;}
+    .month-nav{gap:6px;}
+    .month-nav h1{font-size:19px;min-width:0;}
+    .navbtn{width:30px;height:30px;font-size:14px;}
+    #todayBtn{padding:0 10px;height:30px;font-size:12px;}
+    .month-pnl .value{font-size:21px;}
+    .month-pnl .value-krw{font-size:14px;}
+    .toolbar{gap:7px;}
+    .toolbar .hint{display:none;} /* long usage note — not essential once the layout itself is usable */
+
+    /* drop the separate "주간" column; each week's total becomes a full-width
+       strip below that week's 7 day tiles instead (see .week-tile below) */
+    .dow-row, .grid{ grid-template-columns:repeat(7,1fr); gap:5px; }
+    .dow-row div:last-child{ display:none; }
+
+    .tile{ min-height:64px; padding:4px 5px; border-radius:7px; gap:1px; }
+    .tile .daynum{ font-size:10px; margin-bottom:0; }
+    .tile .pnl{ font-size:10px; line-height:1.15; }
+    .tile .pnl-krw{ font-size:8px; }
+    .tile .trades{ font-size:8px; margin-top:1px; }
+
+    .week-tile{
+      grid-column:1 / -1;
+      flex-direction:row;
+      min-height:0;
+      padding:6px 10px;
+      gap:8px;
+      border-radius:7px;
+    }
+    .week-tile::before{ content:"주간"; font-size:10px; color:var(--txt-dim); flex:none; }
+    .week-tile .w-usd{ font-size:12px; }
+    .week-tile .w-krw{ font-size:11px; }
+
+    .stats, .chart-card{ padding:14px 14px 12px; }
+    .stat-grid{ grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px 14px; }
+    .stat-item .value{ font-size:17px; }
+
+    .chart-tabs{ padding:2px; }
+    .chart-tab{ padding:5px 10px; font-size:11px; }
+
+    .modal{ width:min(360px, 92vw); padding:18px 16px; }
+    .trade-row .r-hint{ width:44px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="title-row">
+      <div class="month-nav">
+        <button class="navbtn" id="prevBtn">‹</button>
+        <h1 id="monthLabel"></h1>
+        <button class="navbtn" id="nextBtn">›</button>
+        <button id="todayBtn">오늘</button>
+      </div>
+      <div class="month-pnl">
+        <div class="label">이번 달 총 P&amp;L</div>
+        <div class="value" id="monthPnl">+0$</div>
+        <div class="value-krw" id="monthPnlKrw">≈ 0원</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="exportBtn">⬇ 내보내기 (JSON)</button>
+      <label id="importLabel">⬆ 불러오기 (JSON)<input type="file" id="importFile" accept="application/json" hidden></label>
+      <span class="rate-box">환율 1$ =
+        <input type="number" id="rateInput" step="0.01" min="0">
+        원
+        <button id="refreshRateBtn" title="실시간 환율 다시 불러오기" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:0;">⟳</button>
+      </span>
+      <span id="rateStatus"></span>
+      <span class="rate-box">1R (최대손실) =
+        <input type="number" id="riskRInput" step="1" min="0">
+        $
+      </span>
+      <span class="hint">※ 이 페이지는 브라우저에 자동 저장되지 않습니다 — 작업을 마치면 "내보내기"로 파일을 저장해두고, 다음에 열 때 "불러오기"로 이어서 사용하세요.</span>
+    </div>
+  </header>
+
+  <div class="dow-row">
+    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div><div>주간</div>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <div class="legend">
+    <span><i class="sw green"></i>수익일</span>
+    <span><i class="sw red"></i>손실일</span>
+    <span><i class="sw default"></i>거래없음</span>
+    <span><i class="sw out"></i>해당월 아님</span>
+  </div>
+
+  <div class="stats">
+    <h2>요약 통계 (R 기준)</h2>
+    <div class="stat-grid" id="statsPrimary"></div>
+    <button type="button" class="more-stats-toggle" id="moreStatsBtn"><span class="arrow">▶</span> More stats</button>
+    <div class="secondary-stats" id="statsSecondary" hidden>
+      <div class="stat-grid" id="statsSecondaryGrid"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head">
+      <div>
+        <h2 id="chartTitle">이번 달 Equity Curve</h2>
+        <div class="sub" id="chartSub">일별 누적 손익 (초록 = 누적 수익 구간, 빨강 = 누적 손실 구간)</div>
+      </div>
+      <div class="chart-tabs">
+        <button type="button" class="chart-tab active" id="tabEquity" data-mode="equity">Equity</button>
+        <button type="button" class="chart-tab" id="tabDrawdown" data-mode="drawdown">Drawdown</button>
+      </div>
+    </div>
+    <div class="chart-wrap" id="chartWrap">
+      <svg id="trendChart" viewBox="0 0 900 260" preserveAspectRatio="none"></svg>
+      <div class="chart-tooltip" id="chartTooltip"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h2>R 분포 (R Distribution)</h2>
+    <div class="sub">이번 달 거래 결과가 몇 R 구간에 몰려있는지 — 소수의 대박 거래 vs 꾸준한 작은 엣지를 한눈에</div>
+    <div class="rdist-rows" id="rDistRows"></div>
+  </div>
+
+  <div class="stats" id="yearSummaryCard">
+    <button type="button" class="more-stats-toggle" id="yearSummaryToggle" style="margin-top:0;padding-top:0;border-top:none;">
+      <span class="arrow">▶</span> <span id="yearSummaryToggleLabel">이번년도 총 요약 더보기</span>
+    </button>
+    <div class="secondary-stats" id="yearSummaryBody" hidden>
+      <h2 id="yearSummaryTitle" style="margin-top:16px;">이번년도 누적 요약 (R 기준)</h2>
+      <div class="sub" id="yearSummarySub" style="margin-bottom:14px;"></div>
+      <div class="stat-grid" id="yearStatsPrimary"></div>
+
+      <button type="button" class="more-stats-toggle" id="yearMoreStatsBtn"><span class="arrow">▶</span> More stats</button>
+      <div class="secondary-stats" id="yearStatsSecondaryWrap" hidden>
+        <div class="stat-grid" id="yearStatsSecondaryGrid"></div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid #1c2029;">
+        <div class="chart-card-head" style="margin-bottom:10px;">
+          <div>
+            <h2 id="yearChartTitle" style="font-size:13px;margin:0 0 2px;color:#fff;">이번년도 Equity Curve</h2>
+            <div class="sub" id="yearChartSub">일별 누적 손익 (초록 = 누적 수익 구간, 빨강 = 누적 손실 구간)</div>
+          </div>
+          <div class="chart-tabs">
+            <button type="button" class="chart-tab active" id="yearTabEquity" data-mode="equity">Equity</button>
+            <button type="button" class="chart-tab" id="yearTabDrawdown" data-mode="drawdown">Drawdown</button>
+          </div>
+        </div>
+        <div class="chart-wrap" id="yearChartWrap">
+          <svg id="yearTrendChart" viewBox="0 0 900 260" preserveAspectRatio="none"></svg>
+          <div class="chart-tooltip" id="yearChartTooltip"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid #1c2029;">
+        <h2 style="font-size:13px;margin:0 0 10px;color:#fff;">월별 손익 (Monthly P&amp;L)</h2>
+        <div class="rdist-rows" id="yearMonthlyRows"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    각 날짜 칸을 클릭하면 그날의 개별 거래를 하나씩 추가하고, 거래별 손익($)을 입력할 수 있습니다. 입력 즉시 색상, 주간 합계, 월간 P&amp;L, 요약 통계, PF·Expectancy·MDD·R 분포가 자동으로 다시 계산됩니다.
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2 id="modalDate"></h2>
+    <div class="trade-rows" id="tradeRows"></div>
+    <button type="button" class="add-trade-btn" id="addTradeBtn">+ 거래 추가</button>
+    <div class="modal-summary" id="modalSummary">총 0건 · 합계 $0</div>
+    <div class="modal-actions">
+      <button class="ghost" id="clearBtn">전체 삭제</button>
+      <button class="ghost" id="cancelBtn">취소</button>
+      <button class="primary" id="saveBtn">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- state ----
+  var journalData = {};   // "YYYY-MM-DD" -> {trades:[Number, ...]}  (each number = one trade's P&L in USD)
+  var today = new Date();
+  var currentYear = today.getFullYear();
+  var currentMonth = today.getMonth() + 1; // 1-12
+  var selectedKey = null;
+  var exchangeRate = 1414; // KRW per 1 USD — fallback default; overwritten by live fetch or manual input
+  var riskR = 100;         // 1R = max loss per trade, in USD — used for R-multiples, Sharpe, MDD
+  var chartMode = "equity"; // "equity" | "drawdown" — which curve the trend chart shows
+
+  var DOW = ["일","월","화","수","목","금","토"];
+
+  function pad(n){ return String(n).padStart(2,"0"); }
+  function dateKey(y,m,d){ return y + "-" + pad(m) + "-" + pad(d); }
+  // amounts entered are USD ($). "$" goes AFTER the number per spec; KRW line is auto-converted below it.
+  function fmtUsd(n){
+    var s = n >= 0 ? "+" : "-";
+    return s + Math.abs(n).toLocaleString("en-US") + "$";
+  }
+  function fmtKrw(n){
+    var krw = Math.round(Math.abs(n) * exchangeRate);
+    var s = n >= 0 ? "+" : "-";
+    return "≈ " + s + krw.toLocaleString("en-US") + "원";
+  }
+  function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
+  function firstWeekday(y,m){ return new Date(y, m-1, 1).getDay(); } // 0=Sun
+
+  // ---- entry helpers (entry = {trades:[n,...]} or undefined) ----
+  function dayAgg(entry){
+    if (!entry || !entry.trades || !entry.trades.length) return { count: 0, pnl: 0 };
+    var pnl = entry.trades.reduce(function(a,b){ return a + b; }, 0);
+    return { count: entry.trades.length, pnl: pnl };
+  }
+  function getMonthCumulative(y, m){
+    var dim = daysInMonth(y, m);
+    var cum = [0];
+    for (var d = 1; d <= dim; d++){
+      var agg = dayAgg(journalData[dateKey(y, m, d)]);
+      cum.push(cum[d-1] + agg.pnl);
+    }
+    return { dim: dim, cum: cum };
+  }
+  function getMonthTrades(y, m){
+    var all = [];
+    for (var key in journalData){
+      if (key.indexOf(y + "-" + pad(m) + "-") === 0 && journalData[key].trades){
+        all = all.concat(journalData[key].trades);
+      }
+    }
+    return all;
+  }
+  function getYearTrades(y){
+    var all = [];
+    for (var key in journalData){
+      if (key.indexOf(y + "-") === 0 && journalData[key].trades){
+        all = all.concat(journalData[key].trades);
+      }
+    }
+    return all;
+  }
+  function getYearCumulative(y){
+    // day-by-day cumulative P&L across Jan 1 - Dec 31 of year y.
+    // Used for the yearly MDD calc and to drive the yearly Equity/Drawdown charts:
+    // dates[i] gives the calendar date for cum[i] (i=1..dim), monthStartIdx[m] gives
+    // the index of the 1st day of month m — used to place the "1월".."12월" x-axis ticks.
+    var cum = [0];
+    var dates = [null];
+    var monthStartIdx = [null];
+    for (var m = 1; m <= 12; m++){
+      monthStartIdx[m] = cum.length;
+      var dim = daysInMonth(y, m);
+      for (var d = 1; d <= dim; d++){
+        var agg = dayAgg(journalData[dateKey(y, m, d)]);
+        cum.push(cum[cum.length - 1] + agg.pnl);
+        dates.push({ m: m, d: d });
+      }
+    }
+    return { dim: cum.length - 1, cum: cum, dates: dates, monthStartIdx: monthStartIdx };
+  }
+
+  // ---- rendering ----
+  function render(){
+    document.getElementById("monthLabel").textContent = currentYear + "년 " + currentMonth + "월";
+
+    var fw = firstWeekday(currentYear, currentMonth);
+    var dim = daysInMonth(currentYear, currentMonth);
+    var totalCells = fw + dim;
+    var weeks = Math.ceil(totalCells / 7);
+
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    var monthTotal = 0;
+    var monthHasEntry = false;
+
+    for (var w = 0; w < weeks; w++){
+      var weekSum = 0, weekHasEntry = false;
+      for (var c = 0; c < 7; c++){
+        var dayNum = w*7 + c - fw + 1;
+        var inMonth = dayNum >= 1 && dayNum <= dim;
+        var tile = document.createElement("div");
+
+        if (!inMonth){
+          tile.className = "tile out";
+          grid.appendChild(tile);
+          continue;
+        }
+
+        var key = dateKey(currentYear, currentMonth, dayNum);
+        var entry = journalData[key];
+        var agg = dayAgg(entry);
+        var cls = "tile";
+        if (agg.count > 0){
+          if (agg.pnl > 0) cls += " green";
+          else if (agg.pnl < 0) cls += " red";
+          weekHasEntry = true;
+          weekSum += agg.pnl;
+          monthHasEntry = true;
+          monthTotal += agg.pnl;
+        }
+        tile.className = cls;
+
+        var html = '<div class="daynum">' + dayNum + '</div>';
+        if (agg.count > 0){
+          var pnlClass = agg.pnl > 0 ? "pos" : (agg.pnl < 0 ? "neg" : "zero");
+          html += '<div class="pnl ' + pnlClass + '">' + fmtUsd(agg.pnl) + '</div>';
+          html += '<div class="pnl-krw">' + fmtKrw(agg.pnl) + '</div>';
+          html += '<div class="trades">' + agg.count + '회</div>';
+        }
+        tile.innerHTML = html;
+        tile.addEventListener("click", (function(k, y, m, d){
+          return function(){ openModal(k, y, m, d); };
+        })(key, currentYear, currentMonth, dayNum));
+
+        grid.appendChild(tile);
+      }
+      var weekTile = document.createElement("div");
+      weekTile.className = "week-tile";
+      if (weekHasEntry){
+        var wColor = weekSum >= 0 ? "var(--green)" : "var(--red)";
+        weekTile.innerHTML =
+          '<div class="w-usd" style="color:' + wColor + '">' + fmtUsd(weekSum) + '</div>' +
+          '<div class="w-krw">' + fmtKrw(weekSum) + '</div>';
+      } else {
+        weekTile.innerHTML = '<div class="w-usd" style="color:var(--txt-dim)">-</div>';
+      }
+      grid.appendChild(weekTile);
+    }
+
+    var monthPnlEl = document.getElementById("monthPnl");
+    monthPnlEl.textContent = fmtUsd(monthTotal);
+    monthPnlEl.className = "value " + (monthTotal > 0 ? "pos" : (monthTotal < 0 ? "neg" : "zero"));
+    document.getElementById("monthPnlKrw").textContent = fmtKrw(monthTotal);
+
+    renderStats();
+    renderChart();
+    renderRDistribution();
+    renderYearSummary();
+  }
+
+  function fmtR(n){
+    var s = n >= 0 ? "+" : "-";
+    return s + Math.abs(n).toFixed(2) + "R";
+  }
+  function statTilesHtml(items){
+    var html = "";
+    items.forEach(function(it){
+      var cls = "value" + (it[3] ? " " + it[3] : "");
+      html += '<div class="stat-item"><div class="label">' + it[0] + '</div><div class="' + cls + '">' + it[1] + '</div>';
+      if (it[2]) html += '<div class="value-krw">' + it[2] + '</div>';
+      html += '</div>';
+    });
+    return html;
+  }
+
+  // shared core: computes the full stats bundle from a set of day-aggregates,
+  // a flat list of trades, and a day-by-day cumulative P&L series (for MDD).
+  // Used for both the current-month stats card and the yearly summary card.
+  function computeStatsCore(dayAggs, allTrades, cum){
+    var tradingDays = dayAggs.filter(function(a){ return a.count > 0; }).length;
+    var totalTrades = allTrades.length;
+    var totalPnl = allTrades.reduce(function(a,b){ return a + b; }, 0);
+    var winDays = dayAggs.filter(function(a){ return a.pnl > 0; }).length;
+    var lossDays = dayAggs.filter(function(a){ return a.pnl < 0; }).length;
+    var dayWinRate = tradingDays > 0 ? (winDays / tradingDays * 100) : 0;
+    var avgPerDay = tradingDays > 0 ? (totalPnl / tradingDays) : 0;
+    var bestDay = dayAggs.length ? Math.max.apply(null, dayAggs.map(function(a){ return a.pnl; })) : 0;
+    var worstDay = dayAggs.length ? Math.min.apply(null, dayAggs.map(function(a){ return a.pnl; })) : 0;
+
+    // BE(breakeven) band = 0 ~ 0.1R (in $: 0 ~ 0.1 * riskR). BE trades count as neither a win nor a loss.
+    // When 1R isn't set, fall back to the $0-only breakeven definition (no R basis to scale the band).
+    var beHi = riskR > 0 ? 0.1 * riskR : 0;
+    var winTrades = allTrades.filter(function(t){ return t > beHi; });
+    var beTrades = allTrades.filter(function(t){ return t >= 0 && t <= beHi; });
+    var lossTrades = allTrades.filter(function(t){ return t < 0; });
+    // Win Rate = Win / (Win + Loss) × 100 — BE trades are excluded from both sides of this ratio.
+    var tradeWinRate = (winTrades.length + lossTrades.length) > 0
+      ? (winTrades.length / (winTrades.length + lossTrades.length) * 100) : 0;
+    var avgWin = winTrades.length ? (winTrades.reduce(function(a,b){return a+b;},0) / winTrades.length) : 0;
+    var avgLoss = lossTrades.length ? (lossTrades.reduce(function(a,b){return a+b;},0) / lossTrades.length) : 0;
+
+    // Profit Factor = gross profit / gross loss (individual trades)
+    var grossProfit = winTrades.reduce(function(a,b){ return a+b; }, 0);
+    var grossLoss = Math.abs(lossTrades.reduce(function(a,b){ return a+b; }, 0));
+    var pf = grossLoss > 0 ? (grossProfit / grossLoss) : (grossProfit > 0 ? Infinity : null);
+
+    // R-based: Total R, Expectancy, Sharpe (mean/stdev of each trade's R-multiple)
+    var totalR = null, expectancy = null, sharpe = null, avgWinR = null, avgLossR = null;
+    if (riskR > 0){
+      totalR = totalPnl / riskR;
+      if (totalTrades > 0) expectancy = totalR / totalTrades;
+      if (winTrades.length) avgWinR = avgWin / riskR;
+      if (lossTrades.length) avgLossR = avgLoss / riskR;
+      if (allTrades.length >= 2){
+        var rVals = allTrades.map(function(t){ return t / riskR; });
+        var meanR = rVals.reduce(function(a,b){ return a+b; }, 0) / rVals.length;
+        var variance = rVals.reduce(function(a,b){ return a + Math.pow(b - meanR, 2); }, 0) / (rVals.length - 1);
+        var sdR = Math.sqrt(variance);
+        sharpe = sdR > 0 ? (meanR / sdR) : null;
+      }
+    }
+
+    // MDD — worst peak-to-trough drop on the given cumulative equity curve
+    var peak = cum.length ? cum[0] : 0, mdd = 0;
+    for (var i = 0; i < cum.length; i++){
+      peak = Math.max(peak, cum[i]);
+      var dd = cum[i] - peak;
+      if (dd < mdd) mdd = dd;
+    }
+    var mddR = riskR > 0 ? (mdd / riskR) : null;
+
+    return {
+      dayAggs: dayAggs, allTrades: allTrades,
+      tradingDays: tradingDays, totalTrades: totalTrades, totalPnl: totalPnl,
+      winDays: winDays, lossDays: lossDays, dayWinRate: dayWinRate, avgPerDay: avgPerDay,
+      bestDay: bestDay, worstDay: worstDay,
+      winTrades: winTrades, lossTrades: lossTrades, beTrades: beTrades, tradeWinRate: tradeWinRate,
+      avgWin: avgWin, avgLoss: avgLoss, avgWinR: avgWinR, avgLossR: avgLossR,
+      pf: pf, grossProfit: grossProfit, grossLoss: grossLoss,
+      totalR: totalR, expectancy: expectancy, sharpe: sharpe,
+      mdd: mdd, mddR: mddR
+    };
+  }
+
+  function computeMonthStats(){
+    var entries = [];
+    for (var key in journalData){
+      if (key.indexOf(currentYear + "-" + pad(currentMonth) + "-") === 0){
+        entries.push(journalData[key]);
+      }
+    }
+    var dayAggs = entries.map(dayAgg);
+    var allTrades = getMonthTrades(currentYear, currentMonth);
+    var mc = getMonthCumulative(currentYear, currentMonth);
+    var s = computeStatsCore(dayAggs, allTrades, mc.cum);
+    s.entries = entries;
+    s.mc = mc;
+    return s;
+  }
+
+  function computeYearStats(){
+    var entries = [];
+    for (var key in journalData){
+      if (key.indexOf(currentYear + "-") === 0){
+        entries.push(journalData[key]);
+      }
+    }
+    var dayAggs = entries.map(dayAgg);
+    var allTrades = getYearTrades(currentYear);
+    var yc = getYearCumulative(currentYear);
+    var s = computeStatsCore(dayAggs, allTrades, yc.cum);
+    s.entries = entries;
+    s.yc = yc;
+    return s;
+  }
+
+  // builds the primary/secondary stat-tile row definitions shared by the
+  // month stats card and the yearly summary card (same fields, same format)
+  function buildStatTileSets(s){
+    var noR = riskR <= 0;
+
+    var primary = [
+      ["Net P&L", fmtUsd(s.totalPnl), fmtKrw(s.totalPnl), s.totalPnl > 0 ? "pos" : (s.totalPnl < 0 ? "neg" : "")],
+      ["Total R", noR ? "-" : fmtR(s.totalR), null, (!noR && s.totalR > 0) ? "pos" : (!noR && s.totalR < 0 ? "neg" : "")],
+      ["Profit Factor", s.pf === null ? "-" : (s.pf === Infinity ? "∞" : s.pf.toFixed(2)),
+        "총이익 " + fmtUsd(s.grossProfit) + " · 총손실 " + fmtUsd(-s.grossLoss), ""],
+      ["Expectancy", noR || s.expectancy === null ? "-" : (fmtR(s.expectancy) + " / trade"),
+        "거래당 평균 " + fmtUsd(s.totalTrades ? Math.round(s.totalPnl / s.totalTrades) : 0),
+        (!noR && s.expectancy > 0) ? "pos" : (!noR && s.expectancy < 0 ? "neg" : "")],
+      ["Win Rate", s.tradeWinRate.toFixed(1) + "%",
+        s.winTrades.length + "승 " + s.lossTrades.length + "패" + (s.beTrades.length ? " · BE " + s.beTrades.length : ""), ""],
+      ["Max Drawdown", noR ? "-" : (s.mdd === 0 ? "0.00R" : fmtR(s.mddR).replace("+","")),
+        fmtUsd(s.mdd), (!noR && s.mdd < 0) ? "neg" : ""],
+      ["Trades", s.totalTrades + "건", s.tradingDays + "일 거래", ""]
+    ];
+
+    var payoffRatio = (!noR && s.avgWinR !== null && s.avgLossR !== null && s.avgLossR !== 0)
+      ? Math.abs(s.avgWinR / s.avgLossR) : null;
+    var bestDayR = (!noR && s.dayAggs.length) ? s.bestDay / riskR : null;
+    var worstDayR = (!noR && s.dayAggs.length) ? s.worstDay / riskR : null;
+
+    var secondary = [
+      ["Trading Days", s.tradingDays + "일", s.winDays + "수익 / " + s.lossDays + "손실", ""],
+      ["Avg Win", (noR || s.avgWinR === null) ? "-" : fmtR(s.avgWinR),
+        s.winTrades.length ? fmtUsd(Math.round(s.avgWin)) : null,
+        (!noR && s.avgWinR !== null) ? "pos" : ""],
+      ["Avg Loss", (noR || s.avgLossR === null) ? "-" : fmtR(s.avgLossR),
+        s.lossTrades.length ? fmtUsd(Math.round(s.avgLoss)) : null,
+        (!noR && s.avgLossR !== null) ? "neg" : ""],
+      ["Payoff Ratio", payoffRatio === null ? "-" : (payoffRatio.toFixed(2) + " : 1"), null, ""],
+      ["Best / Worst Day", (bestDayR === null || worstDayR === null) ? "-" : (fmtR(bestDayR) + " / " + fmtR(worstDayR)),
+        s.dayAggs.length ? (fmtUsd(s.bestDay) + " / " + fmtUsd(s.worstDay)) : null, ""]
+    ];
+
+    return { primary: primary, secondary: secondary };
+  }
+
+  function renderStats(){
+    var s = computeMonthStats();
+    var sets = buildStatTileSets(s);
+    document.getElementById("statsPrimary").innerHTML = statTilesHtml(sets.primary);
+    document.getElementById("statsSecondaryGrid").innerHTML = statTilesHtml(sets.secondary);
+  }
+
+  // ---- yearly summary card (collapsed behind "이번년도 총 요약 더보기") ----
+  function renderYearMonthlyRows(y){
+    var container = document.getElementById("yearMonthlyRows");
+    if (!container) return;
+    var monthTotals = [];
+    for (var m = 1; m <= 12; m++){
+      var mc = getMonthCumulative(y, m);
+      monthTotals.push(mc.cum[mc.cum.length - 1]);
+    }
+    var maxAbs = Math.max.apply(null, monthTotals.map(function(v){ return Math.abs(v); }).concat([1]));
+
+    var html = "";
+    monthTotals.forEach(function(v, i){
+      var kind = v > 0 ? "win" : (v < 0 ? "loss" : "even");
+      var pct = (Math.abs(v) / maxAbs) * 100;
+      html += '<div class="rdist-row">' +
+        '<div class="rlabel">' + (i+1) + '월</div>' +
+        '<div class="rtrack"><div class="rbar ' + kind + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="rcount" style="width:auto;min-width:74px;text-align:right;">' + fmtUsd(v) + '</div>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderYearSummary(){
+    var s = computeYearStats();
+    var sets = buildStatTileSets(s);
+
+    document.getElementById("yearSummaryToggleLabel").textContent = currentYear + "년 총 요약 더보기";
+    document.getElementById("yearSummaryTitle").textContent = currentYear + "년 누적 요약 (R 기준)";
+    document.getElementById("yearSummarySub").textContent =
+      currentYear + "년 1월 ~ 12월 전체 거래를 합산한 값입니다 (달력 아래 월간 요약과 동일한 항목 기준).";
+
+    document.getElementById("yearStatsPrimary").innerHTML = statTilesHtml(sets.primary);
+    document.getElementById("yearStatsSecondaryGrid").innerHTML = statTilesHtml(sets.secondary);
+
+    renderYearChart();
+    renderYearMonthlyRows(currentYear);
+  }
+
+  // ---- R Distribution (histogram of every trade's R-multiple this month) ----
+  function renderRDistribution(){
+    var allTrades = getMonthTrades(currentYear, currentMonth);
+    var container = document.getElementById("rDistRows");
+
+    if (riskR <= 0){
+      container.innerHTML = '<div class="sub" style="margin-top:4px;">1R 값을 설정하면 R 분포가 표시됩니다.</div>';
+      return;
+    }
+    // fine-grained bins: (-Inf,-10] (-10,-5] (-5,-3] (-3,-2] (-2,-1.5] (-1.5,-1] (-1,-0.5] (-0.5,0) | {0} (exact breakeven) | (0,0.5] (0.5,1] (1,1.5] (1.5,2] (2,3] (3,5] (5,10] (10,Inf)
+    var bins = [
+      { label: "≤ -10R",   test: function(r){ return r <= -10; },           kind: "loss" },
+      { label: "-10~-5R",  test: function(r){ return r > -10 && r <= -5; }, kind: "loss" },
+      { label: "-5~-3R",   test: function(r){ return r > -5 && r <= -3; },  kind: "loss" },
+      { label: "-3~-2R",   test: function(r){ return r > -3 && r <= -2; },  kind: "loss" },
+      { label: "-2~-1.5R", test: function(r){ return r > -2 && r <= -1.5; }, kind: "loss" },
+      { label: "-1.5~-1R", test: function(r){ return r > -1.5 && r <= -1; }, kind: "loss" },
+      { label: "-1~-0.5R", test: function(r){ return r > -1 && r <= -0.5; }, kind: "loss" },
+      { label: "-0.5~0R",  test: function(r){ return r > -0.5 && r < 0; },  kind: "loss" },
+      { label: "0~0.1R",   test: function(r){ return r >= 0 && r <= 0.1; }, kind: "even" },
+      { label: "0.1~0.5R", test: function(r){ return r > 0.1 && r <= 0.5; }, kind: "win" },
+      { label: "0.5~1R",   test: function(r){ return r > 0.5 && r <= 1; },  kind: "win" },
+      { label: "1~1.5R",   test: function(r){ return r > 1 && r <= 1.5; },  kind: "win" },
+      { label: "1.5~2R",   test: function(r){ return r > 1.5 && r <= 2; },  kind: "win" },
+      { label: "2~3R",     test: function(r){ return r > 2 && r <= 3; },    kind: "win" },
+      { label: "3~5R",     test: function(r){ return r > 3 && r <= 5; },    kind: "win" },
+      { label: "5~10R",    test: function(r){ return r > 5 && r <= 10; },   kind: "win" },
+      { label: "≥ 10R",    test: function(r){ return r > 10; },             kind: "win" }
+    ];
+    var rVals = allTrades.map(function(t){ return t / riskR; });
+    var counts = bins.map(function(b){ return rVals.filter(b.test).length; });
+    var maxCount = Math.max.apply(null, counts.concat([1]));
+
+    var html = "";
+    bins.forEach(function(b, i){
+      var pct = (counts[i] / maxCount) * 100;
+      var rowCls = "rdist-row" + (b.kind === "even" ? " zero-split" : "");
+      html += '<div class="' + rowCls + '">' +
+        '<div class="rlabel">' + b.label + '</div>' +
+        '<div class="rtrack"><div class="rbar ' + b.kind + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="rcount">' + counts[i] + '</div>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  // ---- trend chart (cumulative P&L for the current month) ----
+  var CHART_W = 900, CHART_H = 260;
+  var CHART_M = { left: 54, right: 64, top: 16, bottom: 28 };
+  var chartState = null; // {dim, cum, xScale, yScale, plot:{x0,x1,y0,y1}}
+  var yearChartMode = "equity"; // "equity" | "drawdown" — which curve the yearly trend chart shows
+  var yearChartState = null;    // same shape as chartState, plus .dates (day index -> {m,d})
+
+  function niceStep(rough){
+    var pow = Math.pow(10, Math.floor(Math.log(rough) / Math.LN10));
+    var f = rough / pow;
+    var nf = f < 1.5 ? 1 : (f < 3 ? 2 : (f < 7 ? 5 : 10));
+    return nf * pow;
+  }
+  function niceTicks(min, max, count){
+    if (min === max){ min -= 1; max += 1; }
+    var step = niceStep((max - min) / count);
+    var start = Math.ceil(min / step) * step;
+    var ticks = [];
+    for (var v = start; v <= max + 1e-9; v += step){ ticks.push(Math.round(v * 100) / 100); }
+    if (ticks.indexOf(0) === -1 && min < 0 && max > 0) ticks.push(0);
+    ticks.sort(function(a,b){ return a-b; });
+    return ticks;
+  }
+  function axisTick(v){
+    var s = v < 0 ? "-$" : "$";
+    return s + Math.abs(Math.round(v)).toLocaleString("en-US");
+  }
+  function axisTickR(v){
+    var r = Math.round(v * 100) / 100;
+    var isInt = Math.abs(r - Math.round(r)) < 1e-9;
+    var s = r < 0 ? "-" : "";
+    return s + Math.abs(isInt ? Math.round(r) : r) + "R";
+  }
+  function getDrawdownSeries(cumObj){
+    // dollar drawdown series aligned to cumObj.cum (index 0..dim): peak-so-far minus current cumulative, always <= 0
+    // (works for both a month's and a year's cumulative series — only .cum is read)
+    var dd = [], peakArr = [];
+    var peak = cumObj.cum[0];
+    for (var i = 0; i < cumObj.cum.length; i++){
+      peak = Math.max(peak, cumObj.cum[i]);
+      peakArr.push(peak);
+      dd.push(cumObj.cum[i] - peak);
+    }
+    return { dd: dd, peak: peakArr };
+  }
+
+  function renderChart(){
+    var mc = getMonthCumulative(currentYear, currentMonth);
+    if (chartMode === "drawdown") renderDrawdownChart(mc);
+    else renderEquityChart(mc);
+  }
+
+  function renderEquityChart(mc){
+    document.getElementById("chartTitle").textContent = "이번 달 Equity Curve";
+    document.getElementById("chartSub").textContent = "일별 누적 손익 (초록 = 누적 수익 구간, 빨강 = 누적 손실 구간)";
+
+    var dim = mc.dim, cum = mc.cum;
+
+    var plotX0 = CHART_M.left, plotX1 = CHART_W - CHART_M.right;
+    var plotY0 = CHART_M.top, plotY1 = CHART_H - CHART_M.bottom;
+    var plotW = plotX1 - plotX0, plotH = plotY1 - plotY0;
+
+    var yMin = Math.min.apply(null, cum.concat([0]));
+    var yMax = Math.max.apply(null, cum.concat([0]));
+    if (yMin === yMax){ yMin -= 100; yMax += 100; }
+    var pad = (yMax - yMin) * 0.18;
+    yMin -= pad; yMax += pad;
+
+    function xScale(dayIdx){ return plotX0 + (dayIdx / dim) * plotW; }
+    function yScale(v){ return plotY0 + (yMax - v) / (yMax - yMin) * plotH; }
+
+    var dd = getDrawdownSeries(mc);
+    chartState = {
+      dim: dim, mode: "equity", cum: cum, dd: dd.dd, peak: dd.peak,
+      xScale: xScale, yScale: yScale, plotX0: plotX0, plotX1: plotX1, plotY0: plotY0, plotY1: plotY1
+    };
+
+    var zeroY = yScale(0);
+    var ticks = niceTicks(yMin, yMax, 4);
+
+    var svgParts = [];
+    svgParts.push('<defs>' +
+      '<clipPath id="clipTop"><rect x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + Math.max(0, zeroY - plotY0) + '"/></clipPath>' +
+      '<clipPath id="clipBottom"><rect x="' + plotX0 + '" y="' + zeroY + '" width="' + plotW + '" height="' + Math.max(0, plotY1 - zeroY) + '"/></clipPath>' +
+      '</defs>');
+
+    // gridlines + y-axis labels
+    ticks.forEach(function(t){
+      var y = yScale(t);
+      svgParts.push('<line class="chart-gridline" x1="' + plotX0 + '" y1="' + y + '" x2="' + plotX1 + '" y2="' + y + '"/>');
+      svgParts.push('<text class="chart-axis-text" x="' + (plotX0 - 8) + '" y="' + (y + 3) + '" text-anchor="end">' + axisTick(t) + '</text>');
+    });
+    // zero reference line (slightly brighter than regular gridlines)
+    svgParts.push('<line class="chart-zeroline" x1="' + plotX0 + '" y1="' + zeroY + '" x2="' + plotX1 + '" y2="' + zeroY + '"/>');
+
+    // x-axis day ticks
+    var xTickDays = [];
+    for (var td = 1; td <= dim; td += 5) xTickDays.push(td);
+    if (xTickDays[xTickDays.length-1] !== dim) xTickDays.push(dim);
+    xTickDays.forEach(function(td){
+      var x = xScale(td);
+      svgParts.push('<text class="chart-axis-text" x="' + x + '" y="' + (plotY1 + 18) + '" text-anchor="middle">' + td + '일</text>');
+    });
+
+    // line + points
+    var linePts = [];
+    for (var i = 0; i <= dim; i++) linePts.push(xScale(i) + ',' + yScale(cum[i]));
+    var lineD = 'M' + linePts.join(' L');
+    var areaD = 'M' + xScale(0) + ',' + zeroY + ' L' + linePts.join(' L') + ' L' + xScale(dim) + ',' + zeroY + ' Z';
+
+    svgParts.push('<path d="' + areaD + '" fill="var(--green)" opacity="0.10" clip-path="url(#clipTop)"/>');
+    svgParts.push('<path d="' + areaD + '" fill="var(--red)" opacity="0.10" clip-path="url(#clipBottom)"/>');
+    svgParts.push('<path d="' + lineD + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    // end marker + end label
+    var endX = xScale(dim), endY = yScale(cum[dim]);
+    var endColor = cum[dim] >= 0 ? "var(--green)" : "var(--red)";
+    svgParts.push('<circle cx="' + endX + '" cy="' + endY + '" r="5" fill="' + endColor + '" stroke="var(--panel)" stroke-width="2"/>');
+    var labelRight = endX + 10;
+    var labelFlip = labelRight + 70 > CHART_W; // flip label to the left if it would overflow
+    var labelX = labelFlip ? endX - 10 : labelRight;
+    var labelAnchor = labelFlip ? "end" : "start";
+    svgParts.push('<text class="chart-endlabel-usd" x="' + labelX + '" y="' + (endY - 6) + '" text-anchor="' + labelAnchor + '" fill="' + endColor + '">' + fmtUsd(cum[dim]) + '</text>');
+    svgParts.push('<text class="chart-endlabel-krw" x="' + labelX + '" y="' + (endY + 10) + '" text-anchor="' + labelAnchor + '">' + fmtKrw(cum[dim]) + '</text>');
+
+    // crosshair (hidden by default, shown on hover) + hit layer
+    svgParts.push('<line class="chart-crosshair" id="chartCrosshair" x1="0" y1="' + plotY0 + '" x2="0" y2="' + plotY1 + '"/>');
+    svgParts.push('<circle id="chartHoverDot" r="4.5" fill="var(--accent)" stroke="var(--panel)" stroke-width="2" style="opacity:0;pointer-events:none;"/>');
+    svgParts.push('<rect class="chart-hit" id="chartHit" x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + plotH + '"/>');
+
+    var svgEl = document.getElementById("trendChart");
+    svgEl.setAttribute("viewBox", "0 0 " + CHART_W + " " + CHART_H);
+    svgEl.innerHTML = svgParts.join("");
+
+    attachChartInteraction(svgEl);
+  }
+
+  function renderDrawdownChart(mc){
+    var useR = riskR > 0;
+    document.getElementById("chartTitle").textContent = "이번 달 Drawdown Curve";
+    document.getElementById("chartSub").textContent = useR
+      ? "peak(최고 누적 자산) 대비 현재 낙폭 — R 기준 (장기 데이터가 쌓일수록 유용해집니다)"
+      : "peak(최고 누적 자산) 대비 현재 낙폭 — $ 기준 (1R을 설정하면 R 단위로 표시됩니다)";
+
+    var dim = mc.dim;
+    var ddInfo = getDrawdownSeries(mc);
+    var ddDollar = ddInfo.dd, peakArr = ddInfo.peak;
+    var yVals = useR ? ddDollar.map(function(v){ return v / riskR; }) : ddDollar;
+
+    var plotX0 = CHART_M.left, plotX1 = CHART_W - CHART_M.right;
+    var plotY0 = CHART_M.top, plotY1 = CHART_H - CHART_M.bottom;
+    var plotW = plotX1 - plotX0, plotH = plotY1 - plotY0;
+
+    var yMin = Math.min.apply(null, yVals.concat([0]));
+    var yMax = 0; // drawdown is always <= 0, so the top of the axis is pinned at 0
+    if (yMin === 0) yMin = useR ? -1 : -100; // flat "no drawdown yet" month still gets a visible axis
+    var padAmt = (yMax - yMin) * 0.15;
+    yMin -= padAmt;
+
+    function xScale(dayIdx){ return plotX0 + (dayIdx / dim) * plotW; }
+    function yScale(v){ return plotY0 + (yMax - v) / (yMax - yMin) * plotH; }
+
+    chartState = {
+      dim: dim, mode: "drawdown", cum: mc.cum, dd: ddDollar, peak: peakArr, ddUnit: yVals,
+      xScale: xScale, yScale: yScale, plotX0: plotX0, plotX1: plotX1, plotY0: plotY0, plotY1: plotY1
+    };
+
+    var zeroY = yScale(0);
+    var ticks = useR ? niceTicks(yMin, yMax, 4) : niceTicks(yMin, yMax, 4);
+    if (ticks.indexOf(0) === -1) ticks.push(0);
+
+    var svgParts = [];
+
+    // gridlines + y-axis labels (0R, -1R, -2R, -3R style)
+    ticks.forEach(function(t){
+      var y = yScale(t);
+      svgParts.push('<line class="chart-gridline" x1="' + plotX0 + '" y1="' + y + '" x2="' + plotX1 + '" y2="' + y + '"/>');
+      var label = useR ? axisTickR(t) : axisTick(t);
+      svgParts.push('<text class="chart-axis-text" x="' + (plotX0 - 8) + '" y="' + (y + 3) + '" text-anchor="end">' + label + '</text>');
+    });
+    // zero / peak reference line
+    svgParts.push('<line class="chart-zeroline" x1="' + plotX0 + '" y1="' + zeroY + '" x2="' + plotX1 + '" y2="' + zeroY + '"/>');
+
+    // x-axis day ticks
+    var xTickDays = [];
+    for (var td = 1; td <= dim; td += 5) xTickDays.push(td);
+    if (xTickDays[xTickDays.length-1] !== dim) xTickDays.push(dim);
+    xTickDays.forEach(function(td){
+      var x = xScale(td);
+      svgParts.push('<text class="chart-axis-text" x="' + x + '" y="' + (plotY1 + 18) + '" text-anchor="middle">' + td + '일</text>');
+    });
+
+    // line + single area fill (always at/below zero, no diverging split needed)
+    var linePts = [];
+    for (var i = 0; i <= dim; i++) linePts.push(xScale(i) + ',' + yScale(yVals[i]));
+    var lineD = 'M' + linePts.join(' L');
+    var areaD = 'M' + xScale(0) + ',' + zeroY + ' L' + linePts.join(' L') + ' L' + xScale(dim) + ',' + zeroY + ' Z';
+
+    svgParts.push('<path d="' + areaD + '" fill="var(--red)" opacity="0.12"/>');
+    svgParts.push('<path d="' + lineD + '" fill="none" stroke="var(--red)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    // end marker + end label
+    var endX = xScale(dim), endY = yScale(yVals[dim]);
+    var atPeak = ddDollar[dim] === 0;
+    var endColor = atPeak ? "var(--green)" : "var(--red)";
+    svgParts.push('<circle cx="' + endX + '" cy="' + endY + '" r="5" fill="' + endColor + '" stroke="var(--panel)" stroke-width="2"/>');
+    var labelRight = endX + 10;
+    var labelFlip = labelRight + 70 > CHART_W;
+    var labelX = labelFlip ? endX - 10 : labelRight;
+    var labelAnchor = labelFlip ? "end" : "start";
+    var endLabelMain = useR ? (atPeak ? "0.00R" : fmtR(yVals[dim])) : fmtUsd(ddDollar[dim]);
+    svgParts.push('<text class="chart-endlabel-usd" x="' + labelX + '" y="' + (endY - 6) + '" text-anchor="' + labelAnchor + '" fill="' + endColor + '">' + endLabelMain + '</text>');
+    svgParts.push('<text class="chart-endlabel-krw" x="' + labelX + '" y="' + (endY + 10) + '" text-anchor="' + labelAnchor + '">' + fmtUsd(ddDollar[dim]) + '</text>');
+
+    // crosshair (hidden by default, shown on hover) + hit layer
+    svgParts.push('<line class="chart-crosshair" id="chartCrosshair" x1="0" y1="' + plotY0 + '" x2="0" y2="' + plotY1 + '"/>');
+    svgParts.push('<circle id="chartHoverDot" r="4.5" fill="var(--red)" stroke="var(--panel)" stroke-width="2" style="opacity:0;pointer-events:none;"/>');
+    svgParts.push('<rect class="chart-hit" id="chartHit" x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + plotH + '"/>');
+
+    var svgEl = document.getElementById("trendChart");
+    svgEl.setAttribute("viewBox", "0 0 " + CHART_W + " " + CHART_H);
+    svgEl.innerHTML = svgParts.join("");
+
+    attachChartInteraction(svgEl);
+  }
+
+  function attachChartInteraction(svgEl){
+    var hit = document.getElementById("chartHit");
+    var crosshair = document.getElementById("chartCrosshair");
+    var hoverDot = document.getElementById("chartHoverDot");
+    var tooltip = document.getElementById("chartTooltip");
+    var wrap = document.getElementById("chartWrap");
+    if (!hit) return;
+
+    function handleMove(evt){
+      var rect = svgEl.getBoundingClientRect();
+      var relX = (evt.clientX - rect.left) / rect.width;
+      var xUser = relX * CHART_W;
+      var dayIdx = Math.round(((xUser - chartState.plotX0) / (chartState.plotX1 - chartState.plotX0)) * chartState.dim);
+      dayIdx = Math.max(0, Math.min(chartState.dim, dayIdx));
+
+      var yPlotVal = chartState.mode === "drawdown" ? chartState.ddUnit[dayIdx] : chartState.cum[dayIdx];
+      var xU = chartState.xScale(dayIdx), yU = chartState.yScale(yPlotVal);
+      crosshair.setAttribute("x1", xU); crosshair.setAttribute("x2", xU);
+      crosshair.style.opacity = 1;
+      hoverDot.setAttribute("cx", xU); hoverDot.setAttribute("cy", yU);
+      hoverDot.style.opacity = 1;
+
+      var wrapRect = wrap.getBoundingClientRect();
+      var pxLeft = (xU / CHART_W) * rect.width + (rect.left - wrapRect.left);
+      var pxTop = (yU / CHART_H) * rect.height + (rect.top - wrapRect.top);
+
+      var dayAggInfo = dayIdx > 0 ? dayAgg(journalData[dateKey(currentYear, currentMonth, dayIdx)]) : { count: 0, pnl: 0 };
+      var dayPnl = dayAggInfo.pnl;
+      var dateLabel = dayIdx === 0 ? (currentMonth + "월 시작") : (currentMonth + "월 " + dayIdx + "일");
+
+      var html, vEls;
+      if (chartState.mode === "drawdown"){
+        var useR = riskR > 0;
+        var ddVal = chartState.dd[dayIdx];
+        html = '<div class="date"></div>' +
+          '<div class="row"><span class="k">Drawdown</span><span class="v"></span></div>' +
+          '<div class="row"><span class="k">Peak 자산</span><span class="v"></span></div>';
+        if (dayIdx > 0){
+          html += '<div class="row"><span class="k">당일 P&amp;L</span><span class="v"></span></div>';
+          if (dayAggInfo.count > 0) html += '<div class="row"><span class="k">거래횟수</span><span class="v">' + dayAggInfo.count + '회</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.querySelector(".date").textContent = dateLabel;
+        vEls = tooltip.querySelectorAll(".v");
+        var ddText = useR ? ((ddVal === 0 ? "0.00R" : fmtR(ddVal / riskR)) + " (" + fmtUsd(ddVal) + ")") : fmtUsd(ddVal);
+        vEls[0].textContent = ddText;
+        vEls[1].textContent = fmtUsd(chartState.peak[dayIdx]);
+        if (dayIdx > 0) vEls[2].textContent = fmtUsd(dayPnl) + " (" + fmtKrw(dayPnl) + ")";
+      } else {
+        html = '<div class="date"></div>' +
+          '<div class="row"><span class="k">누적 P&amp;L</span><span class="v"></span></div>';
+        if (dayIdx > 0){
+          html += '<div class="row"><span class="k">당일 P&amp;L</span><span class="v"></span></div>';
+          if (dayAggInfo.count > 0) html += '<div class="row"><span class="k">거래횟수</span><span class="v">' + dayAggInfo.count + '회</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.querySelector(".date").textContent = dateLabel;
+        vEls = tooltip.querySelectorAll(".v");
+        vEls[0].textContent = fmtUsd(chartState.cum[dayIdx]) + " (" + fmtKrw(chartState.cum[dayIdx]) + ")";
+        if (dayIdx > 0) vEls[1].textContent = fmtUsd(dayPnl) + " (" + fmtKrw(dayPnl) + ")";
+      }
+
+      tooltip.style.display = "block";
+      tooltip.style.left = pxLeft + "px";
+      tooltip.style.top = pxTop + "px";
+    }
+    function handleLeave(){
+      crosshair.style.opacity = 0;
+      hoverDot.style.opacity = 0;
+      tooltip.style.display = "none";
+    }
+    hit.addEventListener("pointermove", handleMove);
+    hit.addEventListener("pointerleave", handleLeave);
+  }
+
+  // ---- yearly trend chart (Equity / Drawdown for the whole currentYear) ----
+  // Mirrors renderChart/renderEquityChart/renderDrawdownChart/attachChartInteraction above,
+  // but plots day-by-day across all 12 months (getYearCumulative) with one x-axis tick per
+  // month instead of per 5 days, and targets the yearTrendChart/yearChart* elements so it
+  // can run independently of (and simultaneously with) the monthly chart.
+  function renderYearChart(){
+    var yc = getYearCumulative(currentYear);
+    if (yearChartMode === "drawdown") renderYearDrawdownChart(yc);
+    else renderYearEquityChart(yc);
+  }
+
+  function renderYearEquityChart(yc){
+    document.getElementById("yearChartTitle").textContent = currentYear + "년 Equity Curve";
+    document.getElementById("yearChartSub").textContent = "일별 누적 손익 (초록 = 누적 수익 구간, 빨강 = 누적 손실 구간)";
+
+    var dim = yc.dim, cum = yc.cum;
+
+    var plotX0 = CHART_M.left, plotX1 = CHART_W - CHART_M.right;
+    var plotY0 = CHART_M.top, plotY1 = CHART_H - CHART_M.bottom;
+    var plotW = plotX1 - plotX0, plotH = plotY1 - plotY0;
+
+    var yMin = Math.min.apply(null, cum.concat([0]));
+    var yMax = Math.max.apply(null, cum.concat([0]));
+    if (yMin === yMax){ yMin -= 100; yMax += 100; }
+    var padAmt = (yMax - yMin) * 0.18;
+    yMin -= padAmt; yMax += padAmt;
+
+    function xScale(dayIdx){ return plotX0 + (dayIdx / dim) * plotW; }
+    function yScale(v){ return plotY0 + (yMax - v) / (yMax - yMin) * plotH; }
+
+    var dd = getDrawdownSeries(yc);
+    yearChartState = {
+      dim: dim, mode: "equity", cum: cum, dd: dd.dd, peak: dd.peak, dates: yc.dates,
+      xScale: xScale, yScale: yScale, plotX0: plotX0, plotX1: plotX1, plotY0: plotY0, plotY1: plotY1
+    };
+
+    var zeroY = yScale(0);
+    var ticks = niceTicks(yMin, yMax, 4);
+
+    var svgParts = [];
+    svgParts.push('<defs>' +
+      '<clipPath id="yearClipTop"><rect x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + Math.max(0, zeroY - plotY0) + '"/></clipPath>' +
+      '<clipPath id="yearClipBottom"><rect x="' + plotX0 + '" y="' + zeroY + '" width="' + plotW + '" height="' + Math.max(0, plotY1 - zeroY) + '"/></clipPath>' +
+      '</defs>');
+
+    ticks.forEach(function(t){
+      var y = yScale(t);
+      svgParts.push('<line class="chart-gridline" x1="' + plotX0 + '" y1="' + y + '" x2="' + plotX1 + '" y2="' + y + '"/>');
+      svgParts.push('<text class="chart-axis-text" x="' + (plotX0 - 8) + '" y="' + (y + 3) + '" text-anchor="end">' + axisTick(t) + '</text>');
+    });
+    svgParts.push('<line class="chart-zeroline" x1="' + plotX0 + '" y1="' + zeroY + '" x2="' + plotX1 + '" y2="' + zeroY + '"/>');
+
+    // x-axis ticks: one per month (1월..12월), placed at that month's first day
+    for (var tm = 1; tm <= 12; tm++){
+      var tx = xScale(yc.monthStartIdx[tm]);
+      svgParts.push('<text class="chart-axis-text" x="' + tx + '" y="' + (plotY1 + 18) + '" text-anchor="middle">' + tm + '월</text>');
+    }
+
+    var linePts = [];
+    for (var i = 0; i <= dim; i++) linePts.push(xScale(i) + ',' + yScale(cum[i]));
+    var lineD = 'M' + linePts.join(' L');
+    var areaD = 'M' + xScale(0) + ',' + zeroY + ' L' + linePts.join(' L') + ' L' + xScale(dim) + ',' + zeroY + ' Z';
+
+    svgParts.push('<path d="' + areaD + '" fill="var(--green)" opacity="0.10" clip-path="url(#yearClipTop)"/>');
+    svgParts.push('<path d="' + areaD + '" fill="var(--red)" opacity="0.10" clip-path="url(#yearClipBottom)"/>');
+    svgParts.push('<path d="' + lineD + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    var endX = xScale(dim), endY = yScale(cum[dim]);
+    var endColor = cum[dim] >= 0 ? "var(--green)" : "var(--red)";
+    svgParts.push('<circle cx="' + endX + '" cy="' + endY + '" r="5" fill="' + endColor + '" stroke="var(--panel)" stroke-width="2"/>');
+    var labelRight = endX + 10;
+    var labelFlip = labelRight + 70 > CHART_W;
+    var labelX = labelFlip ? endX - 10 : labelRight;
+    var labelAnchor = labelFlip ? "end" : "start";
+    svgParts.push('<text class="chart-endlabel-usd" x="' + labelX + '" y="' + (endY - 6) + '" text-anchor="' + labelAnchor + '" fill="' + endColor + '">' + fmtUsd(cum[dim]) + '</text>');
+    svgParts.push('<text class="chart-endlabel-krw" x="' + labelX + '" y="' + (endY + 10) + '" text-anchor="' + labelAnchor + '">' + fmtKrw(cum[dim]) + '</text>');
+
+    svgParts.push('<line class="chart-crosshair" id="yearChartCrosshair" x1="0" y1="' + plotY0 + '" x2="0" y2="' + plotY1 + '"/>');
+    svgParts.push('<circle id="yearChartHoverDot" r="4.5" fill="var(--accent)" stroke="var(--panel)" stroke-width="2" style="opacity:0;pointer-events:none;"/>');
+    svgParts.push('<rect class="chart-hit" id="yearChartHit" x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + plotH + '"/>');
+
+    var svgEl = document.getElementById("yearTrendChart");
+    svgEl.setAttribute("viewBox", "0 0 " + CHART_W + " " + CHART_H);
+    svgEl.innerHTML = svgParts.join("");
+
+    attachYearChartInteraction(svgEl);
+  }
+
+  function renderYearDrawdownChart(yc){
+    var useR = riskR > 0;
+    document.getElementById("yearChartTitle").textContent = currentYear + "년 Drawdown Curve";
+    document.getElementById("yearChartSub").textContent = useR
+      ? "peak(최고 누적 자산) 대비 현재 낙폭 — R 기준 (장기 데이터가 쌓일수록 유용해집니다)"
+      : "peak(최고 누적 자산) 대비 현재 낙폭 — $ 기준 (1R을 설정하면 R 단위로 표시됩니다)";
+
+    var dim = yc.dim;
+    var ddInfo = getDrawdownSeries(yc);
+    var ddDollar = ddInfo.dd, peakArr = ddInfo.peak;
+    var yVals = useR ? ddDollar.map(function(v){ return v / riskR; }) : ddDollar;
+
+    var plotX0 = CHART_M.left, plotX1 = CHART_W - CHART_M.right;
+    var plotY0 = CHART_M.top, plotY1 = CHART_H - CHART_M.bottom;
+    var plotW = plotX1 - plotX0, plotH = plotY1 - plotY0;
+
+    var yMin = Math.min.apply(null, yVals.concat([0]));
+    var yMax = 0;
+    if (yMin === 0) yMin = useR ? -1 : -100;
+    var padAmt = (yMax - yMin) * 0.15;
+    yMin -= padAmt;
+
+    function xScale(dayIdx){ return plotX0 + (dayIdx / dim) * plotW; }
+    function yScale(v){ return plotY0 + (yMax - v) / (yMax - yMin) * plotH; }
+
+    yearChartState = {
+      dim: dim, mode: "drawdown", cum: yc.cum, dd: ddDollar, peak: peakArr, ddUnit: yVals, dates: yc.dates,
+      xScale: xScale, yScale: yScale, plotX0: plotX0, plotX1: plotX1, plotY0: plotY0, plotY1: plotY1
+    };
+
+    var zeroY = yScale(0);
+    var ticks = niceTicks(yMin, yMax, 4);
+    if (ticks.indexOf(0) === -1) ticks.push(0);
+
+    var svgParts = [];
+    ticks.forEach(function(t){
+      var y = yScale(t);
+      svgParts.push('<line class="chart-gridline" x1="' + plotX0 + '" y1="' + y + '" x2="' + plotX1 + '" y2="' + y + '"/>');
+      var label = useR ? axisTickR(t) : axisTick(t);
+      svgParts.push('<text class="chart-axis-text" x="' + (plotX0 - 8) + '" y="' + (y + 3) + '" text-anchor="end">' + label + '</text>');
+    });
+    svgParts.push('<line class="chart-zeroline" x1="' + plotX0 + '" y1="' + zeroY + '" x2="' + plotX1 + '" y2="' + zeroY + '"/>');
+
+    for (var tm = 1; tm <= 12; tm++){
+      var tx = xScale(yc.monthStartIdx[tm]);
+      svgParts.push('<text class="chart-axis-text" x="' + tx + '" y="' + (plotY1 + 18) + '" text-anchor="middle">' + tm + '월</text>');
+    }
+
+    var linePts = [];
+    for (var i = 0; i <= dim; i++) linePts.push(xScale(i) + ',' + yScale(yVals[i]));
+    var lineD = 'M' + linePts.join(' L');
+    var areaD = 'M' + xScale(0) + ',' + zeroY + ' L' + linePts.join(' L') + ' L' + xScale(dim) + ',' + zeroY + ' Z';
+
+    svgParts.push('<path d="' + areaD + '" fill="var(--red)" opacity="0.12"/>');
+    svgParts.push('<path d="' + lineD + '" fill="none" stroke="var(--red)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    var endX = xScale(dim), endY = yScale(yVals[dim]);
+    var atPeak = ddDollar[dim] === 0;
+    var endColor = atPeak ? "var(--green)" : "var(--red)";
+    svgParts.push('<circle cx="' + endX + '" cy="' + endY + '" r="5" fill="' + endColor + '" stroke="var(--panel)" stroke-width="2"/>');
+    var labelRight = endX + 10;
+    var labelFlip = labelRight + 70 > CHART_W;
+    var labelX = labelFlip ? endX - 10 : labelRight;
+    var labelAnchor = labelFlip ? "end" : "start";
+    var endLabelMain = useR ? (atPeak ? "0.00R" : fmtR(yVals[dim])) : fmtUsd(ddDollar[dim]);
+    svgParts.push('<text class="chart-endlabel-usd" x="' + labelX + '" y="' + (endY - 6) + '" text-anchor="' + labelAnchor + '" fill="' + endColor + '">' + endLabelMain + '</text>');
+    svgParts.push('<text class="chart-endlabel-krw" x="' + labelX + '" y="' + (endY + 10) + '" text-anchor="' + labelAnchor + '">' + fmtUsd(ddDollar[dim]) + '</text>');
+
+    svgParts.push('<line class="chart-crosshair" id="yearChartCrosshair" x1="0" y1="' + plotY0 + '" x2="0" y2="' + plotY1 + '"/>');
+    svgParts.push('<circle id="yearChartHoverDot" r="4.5" fill="var(--red)" stroke="var(--panel)" stroke-width="2" style="opacity:0;pointer-events:none;"/>');
+    svgParts.push('<rect class="chart-hit" id="yearChartHit" x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + plotH + '"/>');
+
+    var svgEl = document.getElementById("yearTrendChart");
+    svgEl.setAttribute("viewBox", "0 0 " + CHART_W + " " + CHART_H);
+    svgEl.innerHTML = svgParts.join("");
+
+    attachYearChartInteraction(svgEl);
+  }
+
+  function attachYearChartInteraction(svgEl){
+    var hit = document.getElementById("yearChartHit");
+    var crosshair = document.getElementById("yearChartCrosshair");
+    var hoverDot = document.getElementById("yearChartHoverDot");
+    var tooltip = document.getElementById("yearChartTooltip");
+    var wrap = document.getElementById("yearChartWrap");
+    if (!hit) return;
+
+    function handleMove(evt){
+      var rect = svgEl.getBoundingClientRect();
+      var relX = (evt.clientX - rect.left) / rect.width;
+      var xUser = relX * CHART_W;
+      var dayIdx = Math.round(((xUser - yearChartState.plotX0) / (yearChartState.plotX1 - yearChartState.plotX0)) * yearChartState.dim);
+      dayIdx = Math.max(0, Math.min(yearChartState.dim, dayIdx));
+
+      var yPlotVal = yearChartState.mode === "drawdown" ? yearChartState.ddUnit[dayIdx] : yearChartState.cum[dayIdx];
+      var xU = yearChartState.xScale(dayIdx), yU = yearChartState.yScale(yPlotVal);
+      crosshair.setAttribute("x1", xU); crosshair.setAttribute("x2", xU);
+      crosshair.style.opacity = 1;
+      hoverDot.setAttribute("cx", xU); hoverDot.setAttribute("cy", yU);
+      hoverDot.style.opacity = 1;
+
+      var wrapRect = wrap.getBoundingClientRect();
+      var pxLeft = (xU / CHART_W) * rect.width + (rect.left - wrapRect.left);
+      var pxTop = (yU / CHART_H) * rect.height + (rect.top - wrapRect.top);
+
+      var dateInfo = dayIdx > 0 ? yearChartState.dates[dayIdx] : null;
+      var dayAggInfo = dateInfo ? dayAgg(journalData[dateKey(currentYear, dateInfo.m, dateInfo.d)]) : { count: 0, pnl: 0 };
+      var dayPnl = dayAggInfo.pnl;
+      var dateLabel = dateInfo ? (dateInfo.m + "월 " + dateInfo.d + "일") : (currentYear + "년 시작");
+
+      var html, vEls;
+      if (yearChartState.mode === "drawdown"){
+        var useR = riskR > 0;
+        var ddVal = yearChartState.dd[dayIdx];
+        html = '<div class="date"></div>' +
+          '<div class="row"><span class="k">Drawdown</span><span class="v"></span></div>' +
+          '<div class="row"><span class="k">Peak 자산</span><span class="v"></span></div>';
+        if (dayIdx > 0){
+          html += '<div class="row"><span class="k">당일 P&amp;L</span><span class="v"></span></div>';
+          if (dayAggInfo.count > 0) html += '<div class="row"><span class="k">거래횟수</span><span class="v">' + dayAggInfo.count + '회</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.querySelector(".date").textContent = dateLabel;
+        vEls = tooltip.querySelectorAll(".v");
+        var ddText = useR ? ((ddVal === 0 ? "0.00R" : fmtR(ddVal / riskR)) + " (" + fmtUsd(ddVal) + ")") : fmtUsd(ddVal);
+        vEls[0].textContent = ddText;
+        vEls[1].textContent = fmtUsd(yearChartState.peak[dayIdx]);
+        if (dayIdx > 0) vEls[2].textContent = fmtUsd(dayPnl) + " (" + fmtKrw(dayPnl) + ")";
+      } else {
+        html = '<div class="date"></div>' +
+          '<div class="row"><span class="k">누적 P&amp;L</span><span class="v"></span></div>';
+        if (dayIdx > 0){
+          html += '<div class="row"><span class="k">당일 P&amp;L</span><span class="v"></span></div>';
+          if (dayAggInfo.count > 0) html += '<div class="row"><span class="k">거래횟수</span><span class="v">' + dayAggInfo.count + '회</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.querySelector(".date").textContent = dateLabel;
+        vEls = tooltip.querySelectorAll(".v");
+        vEls[0].textContent = fmtUsd(yearChartState.cum[dayIdx]) + " (" + fmtKrw(yearChartState.cum[dayIdx]) + ")";
+        if (dayIdx > 0) vEls[1].textContent = fmtUsd(dayPnl) + " (" + fmtKrw(dayPnl) + ")";
+      }
+
+      tooltip.style.display = "block";
+      tooltip.style.left = pxLeft + "px";
+      tooltip.style.top = pxTop + "px";
+    }
+    function handleLeave(){
+      crosshair.style.opacity = 0;
+      hoverDot.style.opacity = 0;
+      tooltip.style.display = "none";
+    }
+    hit.addEventListener("pointermove", handleMove);
+    hit.addEventListener("pointerleave", handleLeave);
+  }
+
+  // ---- modal (per-trade entry) ----
+  var modalTrades = []; // working array of Number|null while the modal is open
+
+  function openModal(key, y, m, d){
+    selectedKey = key;
+    document.getElementById("modalDate").textContent = y + "년 " + m + "월 " + d + "일";
+    var entry = journalData[key];
+    modalTrades = (entry && entry.trades && entry.trades.length) ? entry.trades.slice() : [null];
+    renderTradeRows();
+    document.getElementById("modalBackdrop").classList.add("show");
+    var firstInput = document.querySelector("#tradeRows .trade-input");
+    if (firstInput) firstInput.focus();
+  }
+  function closeModal(){
+    document.getElementById("modalBackdrop").classList.remove("show");
+    selectedKey = null;
+    modalTrades = [];
+  }
+
+  function renderTradeRows(){
+    var container = document.getElementById("tradeRows");
+    var html = "";
+    modalTrades.forEach(function(v, i){
+      var rHint = (riskR > 0 && v !== null && !isNaN(v)) ? ((v/riskR >= 0 ? "+" : "") + (v/riskR).toFixed(2) + "R") : "";
+      html += '<div class="trade-row">' +
+        '<span class="idx">' + (i+1) + '</span>' +
+        '<input type="number" step="1" class="trade-input" data-i="' + i + '" value="' + (v === null ? "" : v) + '" placeholder="$">' +
+        '<span class="r-hint">' + rHint + '</span>' +
+        '<button type="button" class="remove-row" data-i="' + i + '">×</button>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+
+    container.querySelectorAll(".trade-input").forEach(function(inp){
+      inp.addEventListener("input", function(){
+        var i = parseInt(this.dataset.i, 10);
+        var v = parseFloat(this.value);
+        modalTrades[i] = isNaN(v) ? null : v;
+        var rowEl = this.closest(".trade-row");
+        var rHintEl = rowEl.querySelector(".r-hint");
+        rHintEl.textContent = (riskR > 0 && modalTrades[i] !== null) ?
+          ((modalTrades[i]/riskR >= 0 ? "+" : "") + (modalTrades[i]/riskR).toFixed(2) + "R") : "";
+        updateModalSummary();
+      });
+    });
+    container.querySelectorAll(".remove-row").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var i = parseInt(this.dataset.i, 10);
+        modalTrades.splice(i, 1);
+        if (modalTrades.length === 0) modalTrades = [null];
+        renderTradeRows();
+      });
+    });
+    updateModalSummary();
+  }
+
+  function updateModalSummary(){
+    var valid = modalTrades.filter(function(v){ return v !== null && !isNaN(v); });
+    var sum = valid.reduce(function(a,b){ return a+b; }, 0);
+    var el = document.getElementById("modalSummary");
+    el.innerHTML = "총 <b>" + valid.length + "건</b> · 합계 <b>" + fmtUsd(sum) + "</b> (" + fmtKrw(sum) + ")";
+  }
+
+  document.getElementById("addTradeBtn").addEventListener("click", function(){
+    modalTrades.push(null);
+    renderTradeRows();
+    var inputs = document.querySelectorAll("#tradeRows .trade-input");
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    if (!selectedKey) return;
+    var valid = modalTrades.filter(function(v){ return v !== null && !isNaN(v); });
+    if (valid.length === 0){
+      delete journalData[selectedKey];
+    } else {
+      journalData[selectedKey] = { trades: valid };
+    }
+    closeModal();
+    render();
+  });
+  document.getElementById("clearBtn").addEventListener("click", function(){
+    if (selectedKey) delete journalData[selectedKey];
+    closeModal();
+    render();
+  });
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  document.getElementById("modalBackdrop").addEventListener("click", function(e){
+    if (e.target.id === "modalBackdrop") closeModal();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") closeModal();
+  });
+
+  // ---- navigation ----
+  document.getElementById("prevBtn").addEventListener("click", function(){
+    currentMonth--;
+    if (currentMonth < 1){ currentMonth = 12; currentYear--; }
+    render();
+  });
+  document.getElementById("nextBtn").addEventListener("click", function(){
+    currentMonth++;
+    if (currentMonth > 12){ currentMonth = 1; currentYear++; }
+    render();
+  });
+  document.getElementById("todayBtn").addEventListener("click", function(){
+    var t = new Date();
+    currentYear = t.getFullYear();
+    currentMonth = t.getMonth() + 1;
+    render();
+  });
+
+  // ---- export / import (no browser storage available; file-based persistence) ----
+  // Plain anchor-download fallback — used when opened as a regular local HTML
+  // file (no window.claude host), or if the downloads capability isn't available.
+  function exportViaAnchor(json){
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "stock_journal_data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById("exportBtn").addEventListener("click", function(){
+    var json = JSON.stringify(journalData, null, 2);
+    // When hosted inside a claude.ai artifact viewer, a plain <a download> link is
+    // inert (the sandbox never grants it), so route the save through the
+    // downloads capability there; anywhere else (a saved local .html file) window.claude
+    // doesn't exist at all, so fall straight back to the normal browser download.
+    if (window.claude && typeof window.claude.use === "function"){
+      window.claude.use("downloads").then(function(downloads){
+        if (!downloads){ exportViaAnchor(json); return; }
+        downloads.save({ filename: "stock_journal_data.json", data: json }).catch(function(err){
+          if (err && err.code === "declined") return; // user said no — nothing more to do
+          exportViaAnchor(json); // capability unavailable/failed — fall back
+        });
+      }).catch(function(){ exportViaAnchor(json); });
+    } else {
+      exportViaAnchor(json);
+    }
+  });
+  document.getElementById("importFile").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      try{
+        var imported = JSON.parse(evt.target.result);
+        Object.assign(journalData, imported);
+        render();
+      } catch(err){
+        alert("JSON 파일을 읽을 수 없습니다: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  // ---- exchange rate (USD -> KRW) ----
+  var rateInputEl = document.getElementById("rateInput");
+  var rateStatusEl = document.getElementById("rateStatus");
+  rateInputEl.value = exchangeRate;
+
+  rateInputEl.addEventListener("change", function(){
+    var v = parseFloat(rateInputEl.value);
+    if (!isNaN(v) && v > 0){
+      exchangeRate = v;
+      rateStatusEl.textContent = "수동 입력값 사용 중";
+      render();
+    }
+  });
+
+  function fetchLiveRate(){
+    rateStatusEl.textContent = "환율 불러오는 중...";
+    fetch("https://api.frankfurter.app/latest?from=USD&to=KRW")
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if (data && data.rates && data.rates.KRW){
+          exchangeRate = data.rates.KRW;
+          rateInputEl.value = Math.round(exchangeRate * 100) / 100;
+          rateStatusEl.textContent = "실시간 환율 적용 (" + (data.date || "") + ")";
+          render();
+        } else {
+          throw new Error("no rate");
+        }
+      })
+      .catch(function(){
+        rateStatusEl.textContent = "실시간 환율을 불러오지 못해 기본값(수동 조정 가능) 사용 중";
+      });
+  }
+  document.getElementById("refreshRateBtn").addEventListener("click", fetchLiveRate);
+  fetchLiveRate(); // best-effort on load; silently falls back to the default rate if offline/blocked
+
+  // ---- 1R (max loss per trade, in USD) — drives R-multiples, Sharpe, MDD-in-R ----
+  var riskRInputEl = document.getElementById("riskRInput");
+  riskRInputEl.value = riskR;
+  riskRInputEl.addEventListener("change", function(){
+    var v = parseFloat(riskRInputEl.value);
+    riskR = (!isNaN(v) && v >= 0) ? v : 0;
+    render();
+  });
+
+  // ---- "More stats" collapsible toggle ----
+  var moreStatsBtn = document.getElementById("moreStatsBtn");
+  var statsSecondaryEl = document.getElementById("statsSecondary");
+  moreStatsBtn.addEventListener("click", function(){
+    var isHidden = statsSecondaryEl.hasAttribute("hidden");
+    if (isHidden){
+      statsSecondaryEl.removeAttribute("hidden");
+      moreStatsBtn.classList.add("open");
+    } else {
+      statsSecondaryEl.setAttribute("hidden", "");
+      moreStatsBtn.classList.remove("open");
+    }
+  });
+
+  // ---- Equity / Drawdown chart tabs ----
+  var tabEquityBtn = document.getElementById("tabEquity");
+  var tabDrawdownBtn = document.getElementById("tabDrawdown");
+  function setChartMode(mode){
+    chartMode = mode;
+    tabEquityBtn.classList.toggle("active", mode === "equity");
+    tabDrawdownBtn.classList.toggle("active", mode === "drawdown");
+    renderChart();
+  }
+  tabEquityBtn.addEventListener("click", function(){ setChartMode("equity"); });
+  tabDrawdownBtn.addEventListener("click", function(){ setChartMode("drawdown"); });
+
+  // ---- yearly Equity / Drawdown chart tabs (inside the "이번년도 총 요약" card) ----
+  var yearTabEquityBtn = document.getElementById("yearTabEquity");
+  var yearTabDrawdownBtn = document.getElementById("yearTabDrawdown");
+  function setYearChartMode(mode){
+    yearChartMode = mode;
+    yearTabEquityBtn.classList.toggle("active", mode === "equity");
+    yearTabDrawdownBtn.classList.toggle("active", mode === "drawdown");
+    renderYearChart();
+  }
+  yearTabEquityBtn.addEventListener("click", function(){ setYearChartMode("equity"); });
+  yearTabDrawdownBtn.addEventListener("click", function(){ setYearChartMode("drawdown"); });
+
+  // ---- "이번년도 총 요약" collapsible toggle (mirrors the monthly stats card, but for the whole year) ----
+  var yearSummaryToggle = document.getElementById("yearSummaryToggle");
+  var yearSummaryBody = document.getElementById("yearSummaryBody");
+  yearSummaryToggle.addEventListener("click", function(){
+    var isHidden = yearSummaryBody.hasAttribute("hidden");
+    if (isHidden){
+      yearSummaryBody.removeAttribute("hidden");
+      yearSummaryToggle.classList.add("open");
+    } else {
+      yearSummaryBody.setAttribute("hidden", "");
+      yearSummaryToggle.classList.remove("open");
+    }
+  });
+
+  var yearMoreStatsBtn = document.getElementById("yearMoreStatsBtn");
+  var yearStatsSecondaryWrap = document.getElementById("yearStatsSecondaryWrap");
+  yearMoreStatsBtn.addEventListener("click", function(){
+    var isHidden = yearStatsSecondaryWrap.hasAttribute("hidden");
+    if (isHidden){
+      yearStatsSecondaryWrap.removeAttribute("hidden");
+      yearMoreStatsBtn.classList.add("open");
+    } else {
+      yearStatsSecondaryWrap.setAttribute("hidden", "");
+      yearMoreStatsBtn.classList.remove("open");
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -406,7 +406,7 @@
         <input type="number" id="riskRInput" step="1" min="0">
         $
       </span>
-      <span class="hint">※ 이 페이지는 브라우저에 자동 저장되지 않습니다 — 작업을 마치면 "내보내기"로 파일을 저장해두고, 다음에 열 때 "불러오기"로 이어서 사용하세요.</span>
+      <span class="hint">※ 입력한 내용은 이 브라우저에 자동 저장됩니다 (기기/브라우저별로 따로 저장돼요). 다른 기기로 옮기거나 백업해두고 싶을 땐 "내보내기"로 파일을 저장하고 "불러오기"로 이어서 사용하세요.</span>
     </div>
   </header>
 
@@ -524,6 +524,39 @@
   var exchangeRate = 1414; // KRW per 1 USD — fallback default; overwritten by live fetch or manual input
   var riskR = 100;         // 1R = max loss per trade, in USD — used for R-multiples, Sharpe, MDD
   var chartMode = "equity"; // "equity" | "drawdown" — which curve the trend chart shows
+
+  // ---- auto-save (this browser only) ----
+  // Persists journalData/exchangeRate/riskR to localStorage so the page remembers your
+  // data on this device/browser without needing 내보내기 every time. This is separate from
+  // (and doesn't replace) the JSON export/import: localStorage is per-browser only — it's
+  // wiped by clearing site data/private browsing and never syncs across devices — so
+  // exporting a JSON backup now and then, or when switching phones/browsers, is still worth doing.
+  var STORAGE_KEY = "stockTradingJournal.v1";
+  function loadFromStorage(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (saved && typeof saved === "object"){
+        if (saved.journalData && typeof saved.journalData === "object") journalData = saved.journalData;
+        if (typeof saved.exchangeRate === "number" && saved.exchangeRate > 0) exchangeRate = saved.exchangeRate;
+        if (typeof saved.riskR === "number" && saved.riskR >= 0) riskR = saved.riskR;
+      }
+    } catch(err){
+      // localStorage unavailable (private browsing, blocked, disabled) or saved data corrupted —
+      // just start from defaults, same as before auto-save existed.
+    }
+  }
+  function saveToStorage(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        journalData: journalData, exchangeRate: exchangeRate, riskR: riskR
+      }));
+    } catch(err){
+      // storage full/unavailable — fail silently; 내보내기 (JSON) still works as a manual backup.
+    }
+  }
+  loadFromStorage(); // restore before the first render() and before the rate/1R inputs are populated below
 
   var DOW = ["일","월","화","수","목","금","토"];
 
@@ -673,6 +706,8 @@
     renderChart();
     renderRDistribution();
     renderYearSummary();
+
+    saveToStorage(); // every render() follows a real data/setting change (or the initial load), so this is where auto-save happens
   }
 
   function fmtR(n){

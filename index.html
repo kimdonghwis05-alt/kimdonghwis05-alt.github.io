@@ -1,2393 +1,1249 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>트레이딩 저널</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Trading Journal — 캘린더</title>
 <style>
   :root{
-    color-scheme: light;
-    --bg: #f9f9f7;
-    --surface: #fcfcfb;
-    --surface-2: #f1f0ec;
-    --surface-hover: #ecebe6;
-    --border: rgba(11,11,11,0.10);
-    --border-strong: rgba(11,11,11,0.16);
-    --text: #0b0b0b;
-    --text-2: #52514e;
-    --text-muted: #898781;
-    --accent: #2a78d6;
-    --accent-ink: #ffffff;
-    --profit: #006300;
-    --profit-bg: rgba(0,99,0,0.09);
-    --loss: #d03b3b;
-    --loss-bg: rgba(208,59,59,0.09);
-    --shadow: 0 12px 32px -12px rgba(11,11,11,0.18), 0 2px 8px -2px rgba(11,11,11,0.08);
-    --radius-lg: 18px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
+    --bg:#0B0E14;
+    --panel:#12151d;
+    --tile-default:#262B3A;
+    --tile-out:#14161D;
+    --tile-green:#1E3A2F;
+    --tile-red:#3A1E1E;
+    --tile-week:#1B1F2A;
+    --border:#3A3F4B;
+    --txt-light:#E5E7EB;
+    --txt-dim:#5B6270;
+    --txt-header:#94A3B8;
+    --green:#4ADE80;
+    --red:#F87171;
+    --accent:#60A5FA;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
   }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      color-scheme: dark;
-      --bg: #0d0d0d;
-      --surface: #1a1a19;
-      --surface-2: #212120;
-      --surface-hover: #292927;
-      --border: rgba(255,255,255,0.10);
-      --border-strong: rgba(255,255,255,0.18);
-      --text: #ffffff;
-      --text-2: #c3c2b7;
-      --text-muted: #8b897f;
-      --accent: #3987e5;
-      --accent-ink: #ffffff;
-      --profit: #0ca30c;
-      --profit-bg: rgba(12,163,12,0.13);
-      --loss: #e66767;
-      --loss-bg: rgba(230,103,103,0.13);
-      --shadow: 0 12px 32px -12px rgba(0,0,0,0.5), 0 2px 8px -2px rgba(0,0,0,0.35);
-    }
-  }
-  :root[data-theme="dark"]{
-    color-scheme: dark;
-    --bg: #0d0d0d;
-    --surface: #1a1a19;
-    --surface-2: #212120;
-    --surface-hover: #292927;
-    --border: rgba(255,255,255,0.10);
-    --border-strong: rgba(255,255,255,0.18);
-    --text: #ffffff;
-    --text-2: #c3c2b7;
-    --text-muted: #8b897f;
-    --accent: #3987e5;
-    --accent-ink: #ffffff;
-    --profit: #0ca30c;
-    --profit-bg: rgba(12,163,12,0.13);
-    --loss: #e66767;
-    --loss-bg: rgba(230,103,103,0.13);
-    --shadow: 0 12px 32px -12px rgba(0,0,0,0.5), 0 2px 8px -2px rgba(0,0,0,0.35);
-  }
-
-  *{ box-sizing: border-box; }
+  *{box-sizing:border-box;}
   body{
     margin:0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-    padding-inline: 20px;
-    padding-block: 20px 60px;
+    background:var(--bg);
+    color:var(--txt-light);
+    font-family:var(--font);
+    padding:28px 20px 60px;
   }
-  .num{ font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
-  h1,h2,h3{ font-family: "Outfit", system-ui, sans-serif; margin: 0; letter-spacing: -0.01em; }
-  button{ font-family: inherit; }
-  .wrap{ max-width: 1100px; margin: 0 auto; display:flex; flex-direction:column; gap:18px; }
+  #app{max-width:1180px;margin:0 auto;}
 
-  /* ---------- header ---------- */
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  header{margin-bottom:18px;}
+  .title-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-bottom:10px;
   }
-  .brand{ display:flex; align-items:center; gap:10px; }
-  .brand-mark{
-    width:36px; height:36px; border-radius: 10px; background: var(--accent); color: var(--accent-ink);
-    display:flex; align-items:center; justify-content:center; font-family:"Outfit"; font-weight:800; font-size:16px; flex-shrink:0;
+  .month-nav{display:flex;align-items:center;gap:10px;}
+  .month-nav h1{font-size:26px;font-weight:700;margin:0;min-width:150px;color:#fff;}
+  .navbtn{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    color:var(--txt-light);
+    border-radius:8px;
+    width:34px;height:34px;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
   }
-  .brand h1{ font-size: 19px; font-weight:700; }
-  .topbar-right{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+  .navbtn:hover{border-color:var(--accent);color:var(--accent);}
+  #todayBtn{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    color:var(--txt-header);
+    border-radius:8px;
+    padding:0 14px;height:34px;
+    font-size:13px;cursor:pointer;
+  }
+  #todayBtn:hover{border-color:var(--accent);color:var(--accent);}
 
-  .month-nav{ display:flex; align-items:center; gap:6px; background: var(--surface); border:1px solid var(--border); border-radius: 999px; padding:4px; }
-  .month-nav button{
-    width:32px; height:32px; border-radius:999px; border:none; background:transparent; color:var(--text-2);
-    cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px;
-  }
-  .month-nav button:hover{ background: var(--surface-hover); color: var(--text); }
-  .month-label{ font-family:"Outfit"; font-weight:600; font-size:14.5px; min-width:104px; text-align:center; }
-  .today-btn{
-    border:1px solid var(--border-strong); background:var(--surface); color:var(--text-2); border-radius:999px;
-    padding:7px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;
-  }
-  .today-btn:hover{ background:var(--surface-hover); color:var(--text); }
+  .month-pnl{text-align:right;}
+  .month-pnl .label{font-size:11px;color:var(--txt-header);margin-bottom:2px;}
+  .month-pnl .value{font-size:26px;font-weight:700;line-height:1.15;}
+  .month-pnl .value-krw{font-size:18px;font-weight:700;color:var(--txt-header);margin-top:2px;}
+  .pos{color:var(--green);}
+  .neg{color:var(--red);}
+  .zero{color:var(--txt-dim);}
 
-  .icon-btn{
-    width:38px; height:38px; border-radius:999px; border:1px solid var(--border); background:var(--surface);
-    color:var(--text-2); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; position:relative;
+  .toolbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding-top:10px;border-top:1px solid #1c2029;
   }
-  .icon-btn:hover{ background:var(--surface-hover); color:var(--text); }
+  .toolbar button, .toolbar label{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    color:var(--txt-light);
+    border-radius:8px;
+    padding:7px 12px;
+    font-size:12px;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .toolbar button:hover, .toolbar label:hover{border-color:var(--accent);color:var(--accent);}
+  .toolbar .hint{font-size:11px;color:var(--txt-dim);}
+  .rate-box{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:5px 10px;
+    font-size:12px;
+    color:var(--txt-header);
+  }
+  .rate-box input{
+    width:78px;
+    background:#0F1219;border:1px solid var(--border);border-radius:6px;
+    color:var(--txt-light);padding:4px 6px;font-size:12px;
+  }
+  .rate-box input:focus{outline:none;border-color:var(--accent);}
+  #rateStatus{font-size:10px;color:var(--txt-dim);}
 
-  .btn-primary{
-    background: var(--accent); color: var(--accent-ink); border:none; border-radius:999px; padding:10px 18px 10px 15px;
-    font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; flex-shrink:0;
+  .dow-row{
+    display:grid;
+    grid-template-columns:repeat(7,1fr) 0.9fr;
+    gap:8px;
+    padding:0 2px;
+    margin-bottom:8px;
   }
-  .btn-primary:hover{ filter:brightness(1.08); }
-  .btn-primary:active{ filter:brightness(0.96); }
-
-  /* ---------- settings popover ---------- */
-  .popover-anchor{ position:relative; }
-  .popover{
-    position:absolute; top:44px; right:0; z-index:40; background:var(--surface); border:1px solid var(--border);
-    border-radius: var(--radius-md); box-shadow: var(--shadow); padding:14px; width:240px;
-  }
-  .popover label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600; }
-  .popover input{
-    margin-top:8px; width:100%; border:1px solid var(--border-strong); background:var(--bg); color:var(--text);
-    border-radius: var(--radius-sm); padding:8px 10px; font-size:14px;
-  }
-  .popover .hint{ margin-top:8px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
-
-  /* ---------- stats ---------- */
-  .stats-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-  .stats-head h2{ font-size:13px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
-  .scope-toggle{ display:flex; background: var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px; gap:3px; }
-  .scope-toggle button{
-    border:none; background:transparent; color:var(--text-2); font-size:12.5px; font-weight:600; padding:8px 15px;
-    border-radius:999px; cursor:pointer;
-  }
-  .scope-toggle button.active{ background: var(--accent); color: var(--accent-ink); }
-
-  .hero-card{
-    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
-    padding:20px 22px 16px; display:flex; flex-direction:column; gap:10px;
-  }
-  .hero-label{ font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
-  .hero-value-row{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
-  .hero-value{ font-size:44px; line-height:1; }
-  .hero-value.profit{ color: var(--profit); }
-  .hero-value.loss{ color: var(--loss); }
-  .hero-krw{ font-size:13px; color: var(--text-muted); font-family:"IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
-  .hero-chart-wrap{ margin-top:4px; }
-  .hero-chart{ width:100%; height:100px; display:block; }
-  .hero-chart-labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; font-family:"IBM Plex Mono", monospace; }
-  .chart-svg-wrap{ position:relative; width:100%; }
-  .chart-end-dot{
-    position:absolute; width:7px; height:7px; border-radius:50%;
-    transform:translate(-50%,-50%); box-shadow:0 0 0 2px var(--surface); pointer-events:none;
-  }
-
-  .stats-secondary{
-    display:flex; gap:10px; overflow-x:auto; padding-bottom:2px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
-  }
-  .stats-secondary::-webkit-scrollbar{ display:none; }
-  .stat-chip{
-    flex:0 0 auto; scroll-snap-align:start; min-width:128px; background: var(--surface); border:1px solid var(--border);
-    border-radius: var(--radius-md); padding:12px 14px; display:flex; flex-direction:column; gap:4px;
-  }
-  .stat-chip-label{ font-size:10.5px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
-  .stat-chip-value{ font-size:17px; font-weight:700; line-height:1.15; }
-  .stat-chip-value.profit{ color: var(--profit); }
-  .stat-chip-value.loss{ color: var(--loss); }
-  .stat-chip-sub{ font-size:11px; color:var(--text-2); }
-  .stat-chip-krw{ font-size:10px; color:var(--text-muted); }
-
-  @media (min-width: 900px){
-    .stats-secondary{
-      display:grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); overflow:visible;
-    }
-    .stat-chip{ min-width:0; }
+  .dow-row div{
+    text-align:center;
+    font-size:12px;
+    font-weight:700;
+    color:var(--txt-header);
+    letter-spacing:.03em;
   }
 
-  /* ---------- page tabs / swipe pager ---------- */
-  .page-tabs{ align-self:flex-start; }
-  .page-tabs button{ padding:9px 20px; }
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr) 0.9fr;
+    gap:8px;
+    margin-bottom:18px;
+  }
+  .tile{
+    background:var(--tile-default);
+    border:1px solid var(--border);
+    border-radius:10px;
+    min-height:132px;
+    padding:8px 10px;
+    cursor:pointer;
+    transition:border-color .12s, transform .12s;
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .tile:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .tile.out{background:var(--tile-out);cursor:default;}
+  .tile.out:hover{border-color:var(--border);transform:none;}
+  .tile.green{background:var(--tile-green);}
+  .tile.red{background:var(--tile-red);}
+  .tile .daynum{font-size:13px;font-weight:700;color:var(--txt-light);margin-bottom:2px;}
+  .tile .pnl{font-size:14px;font-weight:700;line-height:1.2;}
+  .tile .pnl-krw{font-size:12px;font-weight:700;color:var(--txt-header);}
+  .tile .trades{font-size:11px;color:var(--txt-dim);margin-top:2px;}
 
-  .pager-viewport{ overflow:hidden; touch-action: pan-y; transition: height .28s cubic-bezier(.22,.61,.36,1); }
-  .pager-track{
-    display:flex; width:200%; align-items:flex-start;
-    transition: transform .32s cubic-bezier(.22,.61,.36,1);
+  .week-tile{
+    background:var(--tile-week);
+    border:1px solid var(--border);
+    border-radius:10px;
+    min-height:132px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;
   }
-  .pager-track.dragging{ transition:none; }
-  .page{ width:50%; flex:0 0 50%; min-width:0; display:flex; flex-direction:column; gap:18px; }
-  #pageCalendar{ padding-right:2px; }
-  #pageDashboard{ padding-left:2px; }
+  .week-tile .w-usd{font-size:13px;font-weight:700;}
+  .week-tile .w-krw{font-size:12px;font-weight:700;color:var(--txt-header);}
 
-  /* ---------- dashboard ---------- */
-  .dash-period{ font-size:13px; color:var(--text-muted); font-weight:600; }
-  .dash-charts{ display:flex; flex-direction:column; gap:14px; }
-  .dash-chart-card{
-    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
-    padding:18px 18px 14px; display:flex; flex-direction:column; gap:8px;
-  }
-  .dash-chart-label{ font-size:12px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
-  .dash-chart-value{ font-size:20px; font-weight:700; }
-  .dash-chart{ width:100%; height:220px; display:block; margin-top:4px; }
-  .dash-chart.bar-chart{ height:170px; }
-  .dash-chart-labels{ display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); font-family:"IBM Plex Mono", monospace; margin-top:2px; }
+  .legend{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:26px;}
+  .legend span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--txt-header);}
+  .sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--border);display:inline-block;}
+  .sw.green{background:var(--tile-green);}
+  .sw.red{background:var(--tile-red);}
+  .sw.default{background:var(--tile-default);}
+  .sw.out{background:var(--tile-out);}
 
-  .dash-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
-  @media (min-width: 640px){ .dash-grid{ grid-template-columns: repeat(3, 1fr); } }
-  @media (min-width: 980px){ .dash-grid{ grid-template-columns: repeat(4, 1fr); } }
-  .dash-grid .stat-chip{ min-width:0; }
-  .dash-grid .stat-chip.wide{ grid-column: 1 / -1; }
-  .dash-grid .stat-chip.wide .stat-chip-value{ font-size:30px; }
-  .dash-grid .stat-chip-label{ white-space:normal; }
+  .stats{
+    background:var(--panel);
+    border:1px solid #1c2029;
+    border-radius:12px;
+    padding:18px 22px;
+    margin-bottom:22px;
+  }
+  .stats h2{font-size:14px;margin:0 0 14px;color:#fff;}
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:16px 20px;
+  }
+  .stat-item .label{font-size:11px;color:var(--txt-header);margin-bottom:3px;}
+  .stat-item .value{font-size:20px;font-weight:700;color:var(--accent);line-height:1.25;}
+  .stat-item .value.pos{color:var(--green);}
+  .stat-item .value.neg{color:var(--red);}
+  .stat-item .value-krw{font-size:13px;font-weight:600;color:var(--txt-header);margin-top:2px;}
 
-  .chip.neutral{ color: var(--text-muted); background: var(--surface-2); }
-  .chip.be{ color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+  .more-stats-toggle{
+    display:flex;align-items:center;gap:6px;
+    margin-top:18px;padding-top:14px;border-top:1px solid #1c2029;
+    background:none;border-left:none;border-right:none;border-bottom:none;
+    color:var(--accent);font-size:12px;cursor:pointer;width:100%;text-align:left;
+  }
+  .more-stats-toggle .arrow{transition:transform .15s;font-size:10px;}
+  .more-stats-toggle.open .arrow{transform:rotate(90deg);}
+  .secondary-stats{margin-top:16px;}
+  .secondary-stats[hidden]{display:none;}
 
-  /* ---------- radar (performance pentagon) ---------- */
-  .radar-card{ align-items:center; text-align:center; }
-  .radar-score{ font-size:32px; font-weight:700; line-height:1; margin-top:2px; }
-  .radar-chart-wrap{ width:100%; max-width:340px; margin:6px auto 0; }
-  .radar-chart{ width:100%; height:auto; display:block; }
-  .radar-note{ font-size:11px; color:var(--text-muted); margin-top:2px; line-height:1.5; max-width:320px; }
+  .chart-card{
+    background:var(--panel);
+    border:1px solid #1c2029;
+    border-radius:12px;
+    padding:18px 22px 14px;
+    margin-bottom:22px;
+  }
+  .chart-card-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    flex-wrap:wrap;gap:10px;margin-bottom:10px;
+  }
+  .chart-card h2{font-size:14px;margin:0 0 2px;color:#fff;}
+  .chart-card .sub{font-size:11px;color:var(--txt-dim);}
+  .chart-tabs{display:flex;gap:4px;background:#0F1219;border:1px solid var(--border);border-radius:8px;padding:3px;flex:none;}
+  .chart-tab{
+    background:none;border:none;border-radius:6px;
+    color:var(--txt-header);font-size:12px;padding:6px 14px;cursor:pointer;
+  }
+  .chart-tab.active{background:var(--tile-default);color:var(--txt-light);}
+  .chart-tab:hover:not(.active){color:var(--txt-light);}
+  .chart-wrap{position:relative;width:100%;}
+  .chart-wrap svg{display:block;width:100%;height:auto;overflow:visible;}
+  .chart-gridline{stroke:#1c2029;stroke-width:1;shape-rendering:crispEdges;}
+  .chart-zeroline{stroke:#2a2f3d;stroke-width:1;shape-rendering:crispEdges;}
+  .chart-axis-text{font-size:10px;fill:var(--txt-dim);font-family:var(--font);}
+  .chart-crosshair{stroke:var(--txt-dim);stroke-width:1;pointer-events:none;opacity:0;}
+  .chart-hit{fill:transparent;}
+  .chart-endlabel-usd{font-size:12px;font-weight:700;font-family:var(--font);}
+  .chart-endlabel-krw{font-size:11px;font-weight:600;fill:var(--txt-header);font-family:var(--font);}
+  .chart-tooltip{
+    position:absolute;
+    display:none;
+    background:#161a24;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 11px;
+    font-size:11px;
+    color:var(--txt-header);
+    pointer-events:none;
+    white-space:nowrap;
+    transform:translate(-50%,-115%);
+    z-index:5;
+    box-shadow:0 4px 14px rgba(0,0,0,.4);
+  }
+  .chart-tooltip .date{color:var(--txt-light);font-weight:700;margin-bottom:4px;}
+  .chart-tooltip .row{display:flex;justify-content:space-between;gap:14px;}
+  .chart-tooltip .row .k{color:var(--txt-dim);}
+  .chart-tooltip .row .v{font-weight:700;color:var(--txt-light);}
 
-  /* ---------- BE toggle ---------- */
-  .be-toggle{
-    align-self:flex-start; border:1px solid var(--border-strong); background:var(--bg); color:var(--text-2);
-    border-radius:999px; padding:8px 15px; font-size:12.5px; font-weight:600; cursor:pointer;
+  .rdist-rows{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+  .rdist-row{display:flex;align-items:center;gap:10px;}
+  .rdist-row.zero-split{margin:4px 0;padding:5px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);}
+  .rdist-row .rlabel{
+    width:76px;flex:none;font-size:10px;color:var(--txt-header);
+    text-align:right;font-variant-numeric:tabular-nums;letter-spacing:-0.2px;
   }
-  .be-toggle.active{ background: var(--accent); color:#fff; border-color:var(--accent); }
+  .rdist-row .rtrack{flex:1;height:14px;background:#0F1219;border-radius:3px;overflow:hidden;position:relative;}
+  .rdist-row .rbar{height:100%;border-radius:0 3px 3px 0;min-width:2px;transition:width .2s;}
+  .rdist-row .rbar.loss{background:var(--red);}
+  .rdist-row .rbar.win{background:var(--green);}
+  .rdist-row .rbar.even{background:var(--accent);}
+  .rdist-row.zero-split .rlabel{color:var(--accent);font-weight:700;}
+  .rdist-row .rcount{width:22px;flex:none;font-size:11px;font-weight:700;color:var(--txt-light);font-variant-numeric:tabular-nums;}
 
-  /* ---------- calendar ---------- */
-  .cal-card{
-    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg); padding:14px; overflow:hidden;
+  .modal-backdrop{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.55);
+    align-items:center;justify-content:center;
+    z-index:50;
   }
-  .weekdays{ display:grid; grid-template-columns: repeat(7,1fr); gap:6px; margin-bottom:6px; }
-  .weekdays span{ text-align:center; font-size:11.5px; font-weight:600; color:var(--text-muted); padding-block:4px; }
-  .grid{ display:grid; grid-template-columns: repeat(7,1fr); gap:6px; }
-  .cell{
-    aspect-ratio: 1 / 0.92; border-radius: var(--radius-md); border:1px solid var(--border);
-    background: var(--surface); padding:8px; display:flex; flex-direction:column; gap:4px; cursor:pointer;
-    text-align:left; min-width:0; position:relative; overflow:hidden; transition: border-color .12s ease, background .12s ease;
+  .modal-backdrop.show{display:flex;}
+  .modal{
+    background:#161a24;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px 24px;
+    width:360px;
   }
-  .cell:hover{ border-color: var(--border-strong); background: var(--surface-hover); }
-  .cell.empty{ background:transparent; border-color:transparent; cursor:default; }
-  .cell.weekend{ background: var(--surface-2); }
-  .cell.weekend:hover{ background: var(--surface-hover); }
-  .cell.today{ border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .cell.has-profit{ background: var(--profit-bg); }
-  .cell.has-loss{ background: var(--loss-bg); }
-  .cell-date{ font-size:12px; font-weight:600; color:var(--text-2); }
-  .cell.today .cell-date{ color:var(--accent); }
-  .cell-pnl{
-    font-size:13px; font-weight:700; margin-top:auto; line-height:1.15; width:100%;
-    white-space:nowrap; overflow:hidden; text-overflow:clip;
+  .modal h2{margin:0 0 14px;font-size:16px;color:#fff;}
+  .modal label{
+    display:block;font-size:12px;color:var(--txt-header);margin-bottom:14px;
   }
-  .cell-pnl.profit{ color:var(--profit); }
-  .cell-pnl.loss{ color:var(--loss); }
-  .cell-meta{
-    font-size:10.5px; color:var(--text-muted); line-height:1.3; width:100%;
-    white-space:nowrap; overflow:hidden; text-overflow:clip;
+  .modal input{
+    display:block;width:100%;margin-top:6px;
+    background:#0F1219;border:1px solid var(--border);border-radius:8px;
+    color:var(--txt-light);padding:9px 10px;font-size:14px;
   }
+  .modal input:focus{outline:none;border-color:var(--accent);}
+  .modal-actions{display:flex;justify-content:space-between;gap:8px;margin-top:14px;}
+  .modal-actions button{
+    flex:1;border-radius:8px;padding:9px 10px;font-size:13px;cursor:pointer;border:1px solid var(--border);
+  }
+  .modal-actions .ghost{background:transparent;color:var(--txt-header);}
 
-  @media (max-width: 720px){
-    body{ padding-inline:14px; }
-    .cal-card{ padding:10px; }
-    .weekdays{ gap:4px; }
-    .grid{ gap:4px; }
-    .cell{
-      aspect-ratio:auto; height:auto; min-height:72px; padding:6px 5px; border-radius:10px; gap:3px;
-    }
-    .cell-date{ font-size:11px; }
-    .cell-pnl{ font-size:10.5px; }
-    .cell-meta{ font-size:8.8px; }
-    .month-label{ min-width:84px; font-size:13px; }
-    .brand h1{ font-size:16px; }
-    .hero-value{ font-size:36px; }
-    .hero-card{ padding:18px 16px 14px; }
-    .dash-chart{ height:180px; }
-    .dash-chart.bar-chart{ height:140px; }
-    .radar-chart-wrap{ max-width:280px; }
-    .dash-chart-card{ padding:16px 14px 12px; }
-    .dash-grid .stat-chip.wide .stat-chip-value{ font-size:26px; }
+  .trade-rows{max-height:260px;overflow-y:auto;margin-bottom:4px;padding-right:2px;}
+  .trade-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .trade-row .idx{font-size:11px;color:var(--txt-dim);width:16px;flex:none;text-align:right;}
+  .trade-row input{
+    flex:1;margin-top:0;
+    background:#0F1219;border:1px solid var(--border);border-radius:8px;
+    color:var(--txt-light);padding:8px 9px;font-size:13px;
+  }
+  .trade-row input:focus{outline:none;border-color:var(--accent);}
+  .trade-row .r-hint{font-size:11px;color:var(--txt-dim);width:56px;flex:none;text-align:right;}
+  .trade-row .remove-row{
+    flex:none;width:26px;height:26px;border-radius:6px;
+    background:transparent;border:1px solid var(--border);color:var(--txt-dim);
+    cursor:pointer;font-size:14px;line-height:1;padding:0;
+  }
+  .trade-row .remove-row:hover{border-color:var(--red);color:var(--red);}
+  .add-trade-btn{
+    width:100%;padding:8px;border-radius:8px;
+    background:transparent;border:1px dashed var(--border);color:var(--accent);
+    font-size:12px;cursor:pointer;margin-bottom:12px;
+  }
+  .add-trade-btn:hover{border-color:var(--accent);background:rgba(96,165,250,.08);}
+  .modal-summary{
+    font-size:12px;color:var(--txt-header);
+    background:#0F1219;border:1px solid var(--border);border-radius:8px;
+    padding:9px 11px;text-align:center;
+  }
+  .modal-summary b{color:var(--txt-light);}
+  .modal-actions .ghost:hover{border-color:var(--red);color:var(--red);}
+  .modal-actions .primary{background:var(--accent);border-color:var(--accent);color:#0B0E14;font-weight:700;}
+  .modal-actions .primary:hover{opacity:.9;}
 
-    /* larger touch targets for header/nav controls on phones, without changing their look */
-    .topbar-right{ gap:10px; row-gap:10px; }
-    .month-nav{ padding:5px; gap:4px; }
-    .month-nav button{ width:42px; height:42px; font-size:19px; }
-    .today-btn{ padding:11px 16px; font-size:13px; }
-    .icon-btn{ width:44px; height:44px; font-size:18px; }
-    .btn-primary{ padding:12px 20px 12px 17px; font-size:14px; }
-    .scope-toggle{ padding:4px; gap:4px; }
-    .scope-toggle button{ padding:11px 16px; font-size:13px; }
-    .page-tabs button{ padding:12px 20px; }
-  }
-  @media (max-width: 460px){
-    body{ padding-inline:10px; }
-    .cal-card{ padding:8px; }
-    .weekdays{ gap:3px; }
-    .grid{ gap:3px; }
-    .cell{ padding:5px 4px; min-height:66px; }
-    .cell-date{ font-size:10.5px; }
-    .cell-pnl{ font-size:10px; }
-    .cell-meta{ font-size:8.5px; }
-    .hero-value{ font-size:32px; }
-  }
-  @media (max-width: 360px){
-    body{ padding-inline:8px; }
-    .cal-card{ padding:6px; }
-    .weekdays{ gap:2px; }
-    .grid{ gap:2px; }
-    .cell{ min-height:56px; padding:4px 2px; }
-    .cell-date{ font-size:10px; }
-    .cell-pnl{ font-size:9.5px; }
-    .cell-meta{ display:none; }
-  }
-
-  /* ---------- empty state ---------- */
-  .empty-state{
-    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    padding: 34px 20px; gap:6px; color:var(--text-muted);
-  }
-  .empty-state .glyph{ font-size:26px; margin-bottom:4px; }
-  .empty-state h3{ font-size:15px; color:var(--text); font-weight:600; }
-  .empty-state p{ font-size:13px; margin:0; max-width:280px; }
-
-  .banner{
-    background: var(--surface-2); border:1px solid var(--border); border-radius: var(--radius-md);
-    padding:10px 14px; font-size:12.5px; color:var(--text-2); display:flex; align-items:center; gap:8px;
-  }
-
-  /* ---------- modal ---------- */
-  .overlay{
-    position:fixed; inset:0; background: rgba(10,10,10,0); backdrop-filter: blur(0);
-    display:flex; align-items:flex-end; justify-content:center; z-index:100; padding:0;
-    opacity:0; visibility:hidden; pointer-events:none;
-    transition: opacity .22s ease, background-color .22s ease, visibility 0s linear .22s;
-  }
-  .overlay.open{
-    opacity:1; visibility:visible; pointer-events:auto; background: rgba(10,10,10,0.5); backdrop-filter: blur(2px);
-    transition: opacity .22s ease, background-color .22s ease;
-  }
-  .sheet{
-    background: var(--surface); width:100%; max-width:480px; max-height:88vh; border-radius: 20px 20px 0 0;
-    display:flex; flex-direction:column; box-shadow: var(--shadow); overflow:hidden;
-    transform: translateY(18px); transition: transform .26s cubic-bezier(.22,.61,.36,1);
-  }
-  .overlay.open .sheet{ transform: translateY(0); }
-  @media (min-width: 640px){
-    .overlay{ align-items:center; padding:20px; }
-    .sheet{ border-radius: var(--radius-lg); max-height: 84vh; }
-  }
-  .sheet-head{
-    display:flex; align-items:center; gap:10px; padding:16px 16px 12px; border-bottom:1px solid var(--border); flex-shrink:0;
-  }
-  .sheet-head h2{ font-size:16.5px; font-weight:700; flex:1; }
-  .sheet-head .sub{ font-size:12px; color:var(--text-muted); font-weight:500; }
-  .back-btn, .close-btn{
-    width:30px; height:30px; border-radius:999px; border:none; background:transparent; color:var(--text-2);
-    cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;
-  }
-  .back-btn:hover, .close-btn:hover{ background:var(--surface-hover); color:var(--text); }
-  .sheet-body{ padding:14px 16px 18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:10px; }
-
-  .add-row-btn{
-    display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:10px;
-    border:1px dashed var(--border-strong); border-radius: var(--radius-md); background:transparent; color:var(--accent);
-    font-weight:600; font-size:13px; cursor:pointer;
-  }
-  .add-row-btn:hover{ background: var(--surface-2); }
-
-  /* ---------- trade card ---------- */
-  .trade-card{
-    border:1px solid var(--border); border-radius: var(--radius-md); padding:12px; display:flex; gap:10px;
-  }
-  .trade-thumb{
-    width:52px; height:52px; border-radius: var(--radius-sm); object-fit:cover; flex-shrink:0; border:1px solid var(--border);
-    background: var(--surface-2); cursor:zoom-in;
-  }
-  .trade-main{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
-  .trade-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .trade-symbol{ font-weight:700; font-size:14px; display:flex; align-items:center; gap:6px; }
-  .chip{
-    font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:999px; letter-spacing:.02em; line-height:1.5;
-  }
-  .chip.long{ color: var(--profit); background: var(--profit-bg); }
-  .chip.short{ color: var(--loss); background: var(--loss-bg); }
-  .trade-pnl-wrap{ display:flex; flex-direction:column; align-items:flex-end; gap:1px; flex-shrink:0; }
-  .trade-pnl{ font-weight:700; font-size:14px; }
-  .trade-pnl-krw{ font-size:10px; color:var(--text-muted); font-family:"IBM Plex Mono", monospace; }
-  .trade-detail{ font-size:12px; color:var(--text-2); }
-  .trade-notes{ font-size:12px; color:var(--text-muted); }
-  .tag-row{ display:flex; flex-wrap:wrap; gap:5px; margin-top:2px; }
-  .tag{ font-size:10.5px; color:var(--text-2); background:var(--surface-2); padding:2px 7px; border-radius:999px; }
-  .trade-actions{ display:flex; gap:6px; margin-top:4px; }
-  .mini-btn{
-    border:1px solid var(--border-strong); background:transparent; color:var(--text-2); border-radius:999px;
-    padding:4px 10px; font-size:11.5px; font-weight:600; cursor:pointer;
-  }
-  .mini-btn:hover{ background:var(--surface-2); color:var(--text); }
-  .mini-btn.danger{ color: var(--loss); border-color: var(--loss); }
-  .mini-btn.danger:hover{ background: var(--loss-bg); }
-  .mini-btn.confirm{ background: var(--loss); color:#fff; border-color:var(--loss); }
-
-  /* ---------- form ---------- */
-  .field{ display:flex; flex-direction:column; gap:6px; }
-  .field label{ font-size:12px; font-weight:600; color:var(--text-2); }
-  .field input[type=text], .field input[type=number], .field input[type=date], .field textarea{
-    border:1px solid var(--border-strong); background: var(--bg); color: var(--text); border-radius: var(--radius-sm);
-    padding:9px 11px; font-size:14px; font-family:inherit; width:100%;
-  }
-  .field input:focus, .field textarea:focus{ outline:2px solid var(--accent); outline-offset:-1px; }
-  .field textarea{ resize:vertical; min-height:56px; font-family:inherit; }
-  .field-row{ display:flex; gap:10px; }
-  .field-row .field{ flex:1; min-width:0; }
-  .seg{ display:flex; border:1px solid var(--border-strong); border-radius: var(--radius-sm); overflow:hidden; }
-  .seg button{
-    flex:1; padding:9px; border:none; background:var(--bg); color:var(--text-2); font-weight:600; font-size:13px; cursor:pointer;
-  }
-  .seg button.active.long{ background: var(--profit); color:#fff; }
-  .seg button.active.short{ background: var(--loss); color:#fff; }
-  .pnl-hint{ font-size:11.5px; color:var(--text-muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .pnl-hint button{ border:none; background:none; color:var(--accent); font-weight:600; cursor:pointer; font-size:11.5px; padding:0; }
-  .shot-row{ display:flex; align-items:center; gap:10px; }
-  .shot-upload-btn{
-    border:1px dashed var(--border-strong); border-radius: var(--radius-sm); padding:9px 12px; font-size:12.5px;
-    color:var(--text-2); font-weight:600; cursor:pointer; background:transparent;
-  }
-  .shot-upload-btn:hover{ background:var(--surface-2); }
-  .shot-preview{ position:relative; width:52px; height:52px; }
-  .shot-preview img{ width:100%; height:100%; object-fit:cover; border-radius: var(--radius-sm); border:1px solid var(--border); }
-  .shot-remove{
-    position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:999px; background:var(--loss); color:#fff;
-    border:2px solid var(--surface); font-size:11px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  }
-  .form-footer{ display:flex; gap:10px; margin-top:4px; }
-  .form-footer .mini-btn{ padding:9px 14px; font-size:13px; }
-  .btn-save{
-    flex:1; background: var(--accent); color:#fff; border:none; border-radius: 999px; padding:10px; font-weight:700; font-size:13.5px; cursor:pointer;
-  }
-  .btn-save:hover{ filter:brightness(1.08); }
-  .btn-save:disabled{ opacity:.5; cursor:not-allowed; }
-  .btn-cancel{
-    border:1px solid var(--border-strong); background:transparent; color:var(--text-2); border-radius:999px; padding:10px 16px;
-    font-weight:600; font-size:13.5px; cursor:pointer;
-  }
-  .error-text{ font-size:12px; color:var(--loss); }
-
-  /* ---------- lightbox ---------- */
-  .lightbox{
-    position:fixed; inset:0; background:rgba(0,0,0,0); z-index:200; display:flex; align-items:center; justify-content:center; padding:24px;
-    opacity:0; visibility:hidden; pointer-events:none;
-    transition: opacity .2s ease, background-color .2s ease, visibility 0s linear .2s;
-  }
-  .lightbox.open{
-    opacity:1; visibility:visible; pointer-events:auto; background:rgba(0,0,0,0.82);
-    transition: opacity .2s ease, background-color .2s ease;
-  }
-  .lightbox img{
-    max-width:100%; max-height:100%; border-radius:10px; transform:scale(.96); transition: transform .22s cubic-bezier(.22,.61,.36,1);
-  }
-  .lightbox.open img{ transform:scale(1); }
-  .lightbox-close{
-    position:absolute; top:18px; right:18px; width:36px; height:36px; border-radius:999px; background:rgba(255,255,255,0.14);
-    border:none; color:#fff; font-size:18px; cursor:pointer;
-  }
+  footer{margin-top:22px;font-size:11px;color:var(--txt-dim);line-height:1.6;}
 </style>
 </head>
 <body>
-
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-mark">동휘</div>
-      <h1>트레이딩 저널</h1>
-    </div>
-    <div class="topbar-right">
+<div id="app">
+  <header>
+    <div class="title-row">
       <div class="month-nav">
-        <button id="prevMonth" aria-label="이전 달">‹</button>
-        <span class="month-label num" id="monthLabel">2026년 9월</span>
-        <button id="nextMonth" aria-label="다음 달">›</button>
+        <button class="navbtn" id="prevBtn">‹</button>
+        <h1 id="monthLabel"></h1>
+        <button class="navbtn" id="nextBtn">›</button>
+        <button id="todayBtn">오늘</button>
       </div>
-      <button class="today-btn" id="todayBtn">오늘</button>
-      <div class="popover-anchor">
-        <button class="icon-btn" id="settingsBtn" aria-label="설정">⚙</button>
-        <div class="popover" id="settingsPopover" hidden>
-          <label for="currencyInput">통화 기호</label>
-          <input type="text" id="currencyInput" maxlength="3" placeholder="$">
-          <div class="hint">손익 금액 앞에 표시할 기호입니다.</div>
-          <label for="krwRateInput" style="display:block;margin-top:12px;">원화 환율 (1 USD)</label>
-          <input type="number" id="krwRateInput" min="0" step="0.01" placeholder="1343">
-          <div class="hint">보안 정책상 실시간 환율 자동 조회는 지원되지 않아 직접 입력해주세요. 입력하면 손익 아래에 원화 환산액이 작게 표시됩니다.</div>
-          <label for="startingCapitalInput" style="display:block;margin-top:12px;">총자산 (기준 자본금)</label>
-          <input type="number" id="startingCapitalInput" min="0" step="0.01" placeholder="예: 50000">
-          <div class="hint">MDD(%)는 이 값을 기준으로 총자산 대비 최대낙폭으로 계산돼요. 거래를 시작할 때의 계좌 총자산을 입력해주세요.</div>
-          <label style="display:block;margin-top:14px;">데이터 백업</label>
-          <div style="display:flex;gap:6px;margin-top:8px;">
-            <button type="button" id="exportDataBtn" class="mini-btn" style="flex:1;">내보내기 (JSON)</button>
-            <button type="button" id="importDataBtn" class="mini-btn" style="flex:1;">불러오기 (JSON)</button>
-          </div>
-          <input type="file" id="importDataInput" accept="application/json" hidden>
-          <div class="hint">이 사이트는 이 브라우저에만 데이터를 저장해요. 다른 기기나 브라우저에서도 보려면 내보내기한 파일을 그쪽에서 불러오세요. 브라우저 데이터를 지우면 백업 파일 없이는 복구할 수 없으니 주기적으로 내보내기해두는 걸 권장해요.</div>
-        </div>
+      <div class="month-pnl">
+        <div class="label">이번 달 총 P&amp;L</div>
+        <div class="value" id="monthPnl">+0$</div>
+        <div class="value-krw" id="monthPnlKrw">≈ 0원</div>
       </div>
-      <button class="btn-primary" id="addTradeBtn"><span>＋</span>거래 추가</button>
+    </div>
+    <div class="toolbar">
+      <button id="exportBtn">⬇ 내보내기 (JSON)</button>
+      <label id="importLabel">⬆ 불러오기 (JSON)<input type="file" id="importFile" accept="application/json" hidden></label>
+      <span class="rate-box">환율 1$ =
+        <input type="number" id="rateInput" step="0.01" min="0">
+        원
+        <button id="refreshRateBtn" title="실시간 환율 다시 불러오기" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;padding:0;">⟳</button>
+      </span>
+      <span id="rateStatus"></span>
+      <span class="rate-box">1R (최대손실) =
+        <input type="number" id="riskRInput" step="1" min="0">
+        $
+      </span>
+      <span class="hint">※ 이 페이지는 브라우저에 자동 저장되지 않습니다 — 작업을 마치면 "내보내기"로 파일을 저장해두고, 다음에 열 때 "불러오기"로 이어서 사용하세요.</span>
+    </div>
+  </header>
+
+  <div class="dow-row">
+    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div><div>주간</div>
+  </div>
+  <div class="grid" id="grid"></div>
+
+  <div class="legend">
+    <span><i class="sw green"></i>수익일</span>
+    <span><i class="sw red"></i>손실일</span>
+    <span><i class="sw default"></i>거래없음</span>
+    <span><i class="sw out"></i>해당월 아님</span>
+  </div>
+
+  <div class="stats">
+    <h2>요약 통계 (R 기준)</h2>
+    <div class="stat-grid" id="statsPrimary"></div>
+    <button type="button" class="more-stats-toggle" id="moreStatsBtn"><span class="arrow">▶</span> More stats</button>
+    <div class="secondary-stats" id="statsSecondary" hidden>
+      <div class="stat-grid" id="statsSecondaryGrid"></div>
     </div>
   </div>
 
-  <div class="banner" id="offlineBanner" hidden>
-    ⓘ 이 브라우저에서 로컬 저장 기능을 사용할 수 없어요. 시크릿/프라이빗 모드가 아닌 일반 브라우저 창에서 열어주세요.
-  </div>
-
-  <div class="stats-head">
-    <h2>요약 통계</h2>
-    <div class="scope-toggle" id="scopeToggle">
-      <button type="button" data-scope="month" class="active">이번 달</button>
-      <button type="button" data-scope="year">올해</button>
-    </div>
-  </div>
-
-  <div class="page-tabs scope-toggle" id="pageTabs">
-    <button type="button" data-page="0" class="active">캘린더</button>
-    <button type="button" data-page="1">대시보드</button>
-  </div>
-
-  <div class="pager-viewport" id="pagerViewport">
-    <div class="pager-track" id="pagerTrack">
-      <div class="page" id="pageCalendar">
-        <div id="heroCard"></div>
-        <div class="cal-card">
-          <div class="weekdays">
-            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-          </div>
-          <div class="grid" id="calGrid"></div>
-        </div>
-      </div>
-      <div class="page" id="pageDashboard">
-        <div id="dashboardContent"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="dayModal">
-  <div class="sheet">
-    <div class="sheet-head">
-      <button class="back-btn" id="modalBackBtn" hidden aria-label="뒤로">‹</button>
+  <div class="chart-card">
+    <div class="chart-card-head">
       <div>
-        <h2 id="modalTitle">9월 17일</h2>
-        <div class="sub" id="modalSub"></div>
+        <h2 id="chartTitle">이번 달 Equity Curve</h2>
+        <div class="sub" id="chartSub">일별 누적 손익 (초록 = 누적 수익 구간, 빨강 = 누적 손실 구간)</div>
       </div>
-      <button class="close-btn" id="modalCloseBtn" aria-label="닫기">×</button>
+      <div class="chart-tabs">
+        <button type="button" class="chart-tab active" id="tabEquity" data-mode="equity">Equity</button>
+        <button type="button" class="chart-tab" id="tabDrawdown" data-mode="drawdown">Drawdown</button>
+      </div>
     </div>
-    <div class="sheet-body" id="modalBody"></div>
+    <div class="chart-wrap" id="chartWrap">
+      <svg id="trendChart" viewBox="0 0 900 260" preserveAspectRatio="none"></svg>
+      <div class="chart-tooltip" id="chartTooltip"></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <h2>R 분포 (R Distribution)</h2>
+    <div class="sub">이번 달 거래 결과가 몇 R 구간에 몰려있는지 — 소수의 대박 거래 vs 꾸준한 작은 엣지를 한눈에</div>
+    <div class="rdist-rows" id="rDistRows"></div>
+  </div>
+
+  <footer>
+    각 날짜 칸을 클릭하면 그날의 개별 거래를 하나씩 추가하고, 거래별 손익($)을 입력할 수 있습니다. 입력 즉시 색상, 주간 합계, 월간 P&amp;L, 요약 통계, PF·Expectancy·MDD·R 분포가 자동으로 다시 계산됩니다.
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2 id="modalDate"></h2>
+    <div class="trade-rows" id="tradeRows"></div>
+    <button type="button" class="add-trade-btn" id="addTradeBtn">+ 거래 추가</button>
+    <div class="modal-summary" id="modalSummary">총 0건 · 합계 $0</div>
+    <div class="modal-actions">
+      <button class="ghost" id="clearBtn">전체 삭제</button>
+      <button class="ghost" id="cancelBtn">취소</button>
+      <button class="primary" id="saveBtn">저장</button>
+    </div>
   </div>
 </div>
 
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightboxClose">×</button>
-  <img id="lightboxImg" src="" alt="차트 스크린샷">
-</div>
-
-<script>
-// ---- Standalone local-storage shim (IndexedDB-backed) ----------------
-// Replaces the Claude Artifact platform's window.claude.use("db"/"assets")
-// capabilities with a browser-native equivalent so this file can run as a
-// fully independent, offline-capable website (e.g. on GitHub Pages).
-(function(){
-  "use strict";
-
-  var DB_NAME = "tradingJournalDB";
-  var DB_VERSION = 1;
-  var docStore = {};      // path -> data, in-memory mirror of the "docs" store
-  var blobUrlMap = {};    // asset id -> object URL
-  var listeners = {};     // path -> [callback, ...]
-  var idb = null;
-
-  function openIDB(){
-    return new Promise(function(resolve, reject){
-      if (!("indexedDB" in window)){ reject(new Error("indexedDB unsupported")); return; }
-      var req = indexedDB.open(DB_NAME, DB_VERSION);
-      req.onupgradeneeded = function(){
-        var db = req.result;
-        if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", {keyPath:"path"});
-        if (!db.objectStoreNames.contains("assets")) db.createObjectStore("assets", {keyPath:"id"});
-      };
-      req.onsuccess = function(){ idb = req.result; resolve(idb); };
-      req.onerror = function(){ reject(req.error); };
-    });
-  }
-
-  function idbGetAll(storeName){
-    return new Promise(function(resolve, reject){
-      try{
-        var tx = idb.transaction(storeName, "readonly");
-        var req = tx.objectStore(storeName).getAll();
-        req.onsuccess = function(){ resolve(req.result || []); };
-        req.onerror = function(){ reject(req.error); };
-      }catch(e){ reject(e); }
-    });
-  }
-
-  function idbPut(storeName, value){
-    return new Promise(function(resolve, reject){
-      try{
-        var tx = idb.transaction(storeName, "readwrite");
-        tx.objectStore(storeName).put(value);
-        tx.oncomplete = function(){ resolve(); };
-        tx.onerror = function(){ reject(tx.error); };
-      }catch(e){ reject(e); }
-    });
-  }
-
-  function idbDelete(storeName, key){
-    return new Promise(function(resolve, reject){
-      try{
-        var tx = idb.transaction(storeName, "readwrite");
-        tx.objectStore(storeName).delete(key);
-        tx.oncomplete = function(){ resolve(); };
-        tx.onerror = function(){ reject(tx.error); };
-      }catch(e){ reject(e); }
-    });
-  }
-
-  function idbClear(storeName){
-    return new Promise(function(resolve, reject){
-      try{
-        var tx = idb.transaction(storeName, "readwrite");
-        tx.objectStore(storeName).clear();
-        tx.oncomplete = function(){ resolve(); };
-        tx.onerror = function(){ reject(tx.error); };
-      }catch(e){ reject(e); }
-    });
-  }
-
-  var readyPromise = openIDB().then(function(){
-    return Promise.all([idbGetAll("docs"), idbGetAll("assets")]);
-  }).then(function(results){
-    var docs = results[0], assets = results[1];
-    docs.forEach(function(d){ docStore[d.path] = d.data; });
-    assets.forEach(function(a){
-      try{ blobUrlMap[a.id] = URL.createObjectURL(a.blob); }catch(e){}
-    });
-    return true;
-  }).catch(function(err){
-    console.error("local storage init failed", err);
-    return false;
-  });
-
-  window.__blobUrl = function(id){ return id ? (blobUrlMap[id] || "") : ""; };
-
-  function notify(path){
-    Object.keys(listeners).forEach(function(watchPath){
-      if (path === watchPath || path.indexOf(watchPath + "/") === 0 || watchPath === ""){
-        listeners[watchPath].forEach(function(cb){ try{ cb(); }catch(e){ console.error(e); } });
-      }
-    });
-  }
-
-  function genId(){
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-  }
-
-  function addListener(path, cb){
-    if (!listeners[path]) listeners[path] = [];
-    listeners[path].push(cb);
-    return function(){
-      var arr = listeners[path];
-      if (!arr) return;
-      var idx = arr.indexOf(cb);
-      if (idx !== -1) arr.splice(idx, 1);
-    };
-  }
-
-  function docRef(path){
-    var ref = {
-      get exists(){ return Object.prototype.hasOwnProperty.call(docStore, path); },
-      data: function(){ return docStore[path]; },
-      get: function(){
-        return Promise.resolve({
-          exists: Object.prototype.hasOwnProperty.call(docStore, path),
-          data: function(){ return docStore[path]; }
-        });
-      },
-      set: function(data){
-        docStore[path] = data;
-        notify(path);
-        return idbPut("docs", {path: path, data: data});
-      },
-      update: function(patch){
-        var cur = docStore[path] || {};
-        var next = {};
-        Object.keys(cur).forEach(function(k){ next[k] = cur[k]; });
-        Object.keys(patch).forEach(function(k){ next[k] = patch[k]; });
-        docStore[path] = next;
-        notify(path);
-        return idbPut("docs", {path: path, data: next});
-      },
-      delete: function(){
-        delete docStore[path];
-        notify(path);
-        return idbDelete("docs", path);
-      },
-      onSnapshot: function(cb){
-        var fire = function(){
-          cb({
-            exists: Object.prototype.hasOwnProperty.call(docStore, path),
-            data: function(){ return docStore[path]; }
-          });
-        };
-        var unsub = addListener(path, fire);
-        readyPromise.then(fire);
-        return unsub;
-      }
-    };
-    return ref;
-  }
-
-  function matchesPrefix(key, prefix){
-    return key === prefix || key.indexOf(prefix + "/") === 0;
-  }
-
-  function colRef(path){
-    var filters = [];
-    var sortField = null, sortDir = "asc";
-    var limitN = null;
-
-    function snapshotDocs(){
-      var out = [];
-      Object.keys(docStore).forEach(function(key){
-        if (!matchesPrefix(key, path)) return;
-        var rest = key.slice(path.length).replace(/^\//, "");
-        if (rest.indexOf("/") !== -1) return; // only direct children are "documents" of this collection
-        var data = docStore[key];
-        if (!data) return;
-        var id = rest;
-        var ok = filters.every(function(f){
-          var v = data[f.field];
-          if (f.op === "==") return v === f.value;
-          if (f.op === ">=") return v >= f.value;
-          if (f.op === "<=") return v <= f.value;
-          if (f.op === ">") return v > f.value;
-          if (f.op === "<") return v < f.value;
-          if (f.op === "!=") return v !== f.value;
-          return true;
-        });
-        if (!ok) return;
-        var rec = {};
-        Object.keys(data).forEach(function(k){ rec[k] = data[k]; });
-        rec.id = id;
-        out.push(rec);
-      });
-      if (sortField){
-        out.sort(function(a,b){
-          var av = a[sortField], bv = b[sortField];
-          if (av < bv) return sortDir === "asc" ? -1 : 1;
-          if (av > bv) return sortDir === "asc" ? 1 : -1;
-          return 0;
-        });
-      }
-      if (limitN != null) out = out.slice(0, limitN);
-      return out;
-    }
-
-    var ref = {
-      where: function(field, op, value){
-        filters.push({field: field, op: op, value: value});
-        return ref;
-      },
-      orderBy: function(field, dir){
-        sortField = field;
-        sortDir = dir || "asc";
-        return ref;
-      },
-      limit: function(n){
-        limitN = n;
-        return ref;
-      },
-      doc: function(id){
-        return docRef(path + "/" + id);
-      },
-      add: function(data){
-        var id = genId();
-        return docRef(path + "/" + id).set(data).then(function(){ return {id: id}; });
-      },
-      get: function(){
-        return Promise.resolve({
-          docs: snapshotDocs().map(function(rec){
-            return {id: rec.id, data: function(){ return rec; }};
-          })
-        });
-      },
-      onSnapshot: function(cb){
-        var fire = function(){
-          var docs = snapshotDocs();
-          cb({docs: docs.map(function(rec){
-            return {id: rec.id, data: function(){ return rec; }};
-          })});
-        };
-        var unsub = addListener(path, fire);
-        readyPromise.then(fire);
-        return unsub;
-      }
-    };
-    return ref;
-  }
-
-  var assetsApi = {
-    upload: function(file){
-      var id = genId();
-      var url;
-      try{ url = URL.createObjectURL(file); }catch(e){ url = ""; }
-      blobUrlMap[id] = url;
-      var rec = {
-        id: id,
-        blob: file,
-        contentType: file.type || "application/octet-stream",
-        sizeBytes: file.size || 0,
-        createdAt: Date.now()
-      };
-      return idbPut("assets", rec).then(function(){
-        return {id: id, url: url, sizeBytes: rec.sizeBytes, contentType: rec.contentType};
-      });
-    },
-    list: function(){
-      return idbGetAll("assets").then(function(assets){
-        var usage = assets.reduce(function(sum,a){ return sum + (a.sizeBytes||0); }, 0);
-        return {assets: assets.map(function(a){
-          return {id: a.id, url: blobUrlMap[a.id] || "", sizeBytes: a.sizeBytes, contentType: a.contentType};
-        }), usage: usage};
-      });
-    },
-    delete: function(id){
-      if (blobUrlMap[id]){
-        try{ URL.revokeObjectURL(blobUrlMap[id]); }catch(e){}
-        delete blobUrlMap[id];
-      }
-      return idbDelete("assets", id);
-    }
-  };
-
-  // ---- JSON export / import backup -------------------------------------
-  window.__exportAllData = function(){
-    var trades = [];
-    Object.keys(docStore).forEach(function(key){
-      if (matchesPrefix(key, "trades") && key !== "trades"){
-        var rest = key.slice("trades/".length);
-        if (rest.indexOf("/") === -1){
-          var rec = {};
-          var data = docStore[key] || {};
-          Object.keys(data).forEach(function(k){ rec[k] = data[k]; });
-          rec.id = rest;
-          trades.push(rec);
-        }
-      }
-    });
-    return {
-      exportedAt: new Date().toISOString(),
-      settings: docStore["settings/general"] || null,
-      trades: trades
-    };
-  };
-
-  window.__importAllData = function(payload, mode){
-    // mode: "replace" clears all existing local trades/settings first; "merge" (default) overwrites matching ids and keeps the rest.
-    var work = Promise.resolve();
-    if (mode === "replace"){
-      Object.keys(docStore).slice().forEach(function(key){ delete docStore[key]; });
-      work = work.then(function(){ return Promise.all([idbClear("docs"), idbClear("assets")]); }).then(function(){
-        blobUrlMap = {};
-      });
-    }
-    return work.then(function(){
-      var puts = [];
-      if (payload && payload.settings){
-        docStore["settings/general"] = payload.settings;
-        puts.push(idbPut("docs", {path: "settings/general", data: payload.settings}));
-      }
-      if (payload && Array.isArray(payload.trades)){
-        payload.trades.forEach(function(t){
-          if (!t || !t.id) return;
-          var rec = {};
-          Object.keys(t).forEach(function(k){ if (k !== "id") rec[k] = t[k]; });
-          var path = "trades/" + t.id;
-          docStore[path] = rec;
-          puts.push(idbPut("docs", {path: path, data: rec}));
-        });
-      }
-      return Promise.all(puts);
-    }).then(function(){
-      notify("trades");
-      notify("settings/general");
-      return true;
-    });
-  };
-
-  window.claude = {
-    use: function(name){
-      return readyPromise.then(function(ok){
-        if (!ok) return null;
-        if (name === "db") return {doc: docRef, collection: colRef};
-        if (name === "assets") return assetsApi;
-        return null;
-      });
-    }
-  };
-})();
-</script>
-
 <script>
 (function(){
   "use strict";
 
-  var WEEKDAY = ["일","월","화","수","목","금","토"];
-  var MONTH_NAMES = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
-
+  // ---- state ----
+  var journalData = {};   // "YYYY-MM-DD" -> {trades:[Number, ...]}  (each number = one trade's P&L in USD)
   var today = new Date();
-  var state = {
-    viewYear: today.getFullYear(),
-    viewMonth: today.getMonth(), // 0-indexed
-    trades: [],
-    tradesByDate: {},
-    yearTrades: [],
-    statsScope: "month", // "month" | "year"
-    currency: "$",
-    krwRate: 1343,
-    startingCapital: 0,
-    dbReady: false,
-    dbNS: null,
-    assetsNS: null,
-    selectedDate: null,
-    editingTradeId: null,
-    formShot: null // {id, url}
-  };
+  var currentYear = today.getFullYear();
+  var currentMonth = today.getMonth() + 1; // 1-12
+  var selectedKey = null;
+  var exchangeRate = 1414; // KRW per 1 USD — fallback default; overwritten by live fetch or manual input
+  var riskR = 100;         // 1R = max loss per trade, in USD — used for R-multiples, Sharpe, MDD
+  var chartMode = "equity"; // "equity" | "drawdown" — which curve the trend chart shows
 
-  var unsubTrades = null;
-  var unsubSettings = null;
-  var unsubYear = null;
-  var yearSubscribedFor = null;
-  var pageIndex = 0;
+  var DOW = ["일","월","화","수","목","금","토"];
 
   function pad(n){ return String(n).padStart(2,"0"); }
-  function ymd(y,m,d){ return y + "-" + pad(m+1) + "-" + pad(d); }
-  function todayStr(){ return ymd(today.getFullYear(), today.getMonth(), today.getDate()); }
-
-  function fmtMoney(n){
-    n = Number(n) || 0;
-    var abs = Math.abs(n);
-    var s = abs.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
-    var sign = n > 0 ? "+" : (n < 0 ? "−" : "");
-    return sign + state.currency + s;
+  function dateKey(y,m,d){ return y + "-" + pad(m) + "-" + pad(d); }
+  // amounts entered are USD ($). "$" goes AFTER the number per spec; KRW line is auto-converted below it.
+  function fmtUsd(n){
+    var s = n >= 0 ? "+" : "-";
+    return s + Math.abs(n).toLocaleString("en-US") + "$";
   }
-  function pnlClass(n){ return n > 0 ? "profit" : (n < 0 ? "loss" : ""); }
-
-  // Compact, no-cents money format for tight spaces (calendar day cells) —
-  // e.g. "+$40,523" instead of "+$40,523.00", so wide numbers keep fitting
-  // narrow cells instead of overflowing into the neighboring column.
-  function fmtMoneyCompact(n){
-    n = Number(n) || 0;
-    var abs = Math.abs(n);
-    var s = abs.toLocaleString("en-US", {maximumFractionDigits:0});
-    var sign = n > 0 ? "+" : (n < 0 ? "−" : "");
-    return sign + state.currency + s;
+  function fmtKrw(n){
+    var krw = Math.round(Math.abs(n) * exchangeRate);
+    var s = n >= 0 ? "+" : "-";
+    return "≈ " + s + krw.toLocaleString("en-US") + "원";
   }
+  function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
+  function firstWeekday(y,m){ return new Date(y, m-1, 1).getDay(); } // 0=Sun
 
-  // Shrinks calendar cell text (P&L amount, trade-count/win-rate meta) down
-  // in 0.5px steps until it fits its cell on a single line — numbers must
-  // never wrap, since a broken-up number is hard to read at a glance. Runs
-  // after every calendar render and on viewport resize/orientation change.
-  function fitCalendarText(){
-    var grid = document.getElementById("calGrid");
-    if (!grid) return;
-    var targets = grid.querySelectorAll(".cell-pnl, .cell-meta");
-    for (var i = 0; i < targets.length; i++){ targets[i].style.fontSize = ""; }
-    for (var j = 0; j < targets.length; j++){
-      var el = targets[j];
-      var floor = el.classList.contains("cell-pnl") ? 6 : 6;
-      var size = parseFloat(getComputedStyle(el).fontSize);
-      var guard = 0;
-      while (el.scrollWidth > el.clientWidth + 0.5 && size > floor && guard < 24){
-        size -= 0.5;
-        el.style.fontSize = size + "px";
-        guard++;
+  // ---- entry helpers (entry = {trades:[n,...]} or undefined) ----
+  function dayAgg(entry){
+    if (!entry || !entry.trades || !entry.trades.length) return { count: 0, pnl: 0 };
+    var pnl = entry.trades.reduce(function(a,b){ return a + b; }, 0);
+    return { count: entry.trades.length, pnl: pnl };
+  }
+  function getMonthCumulative(y, m){
+    var dim = daysInMonth(y, m);
+    var cum = [0];
+    for (var d = 1; d <= dim; d++){
+      var agg = dayAgg(journalData[dateKey(y, m, d)]);
+      cum.push(cum[d-1] + agg.pnl);
+    }
+    return { dim: dim, cum: cum };
+  }
+  function getMonthTrades(y, m){
+    var all = [];
+    for (var key in journalData){
+      if (key.indexOf(y + "-" + pad(m) + "-") === 0 && journalData[key].trades){
+        all = all.concat(journalData[key].trades);
       }
     }
-  }
-  var fitCalendarTextTimer = null;
-  function scheduleFitCalendarText(){
-    clearTimeout(fitCalendarTextTimer);
-    fitCalendarTextTimer = setTimeout(fitCalendarText, 120);
-  }
-  window.addEventListener("resize", scheduleFitCalendarText);
-  if (window.document.fonts && window.document.fonts.ready){
-    window.document.fonts.ready.then(function(){ scheduleFitCalendarText(); });
+    return all;
   }
 
-  function krwText(usdAmount){
-    if (state.currency === "₩") return "";
-    if (!state.krwRate || !isFinite(state.krwRate) || state.krwRate <= 0) return "";
-    var krw = usdAmount * state.krwRate;
-    var sign = krw > 0 ? "+" : (krw < 0 ? "−" : "");
-    return "≈ " + sign + "₩" + Math.round(Math.abs(krw)).toLocaleString("en-US");
-  }
-
-  function esc(s){
-    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
-      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
-    });
-  }
-
-  function isBE(t){ return !!(t && t.isBE === true); }
-
-  /* ---------------- boot ---------------- */
-  function start(hotData){
-    if (hotData && typeof hotData.viewYear === "number"){
-      state.viewYear = hotData.viewYear;
-      state.viewMonth = hotData.viewMonth;
-    }
-    if (hotData && hotData.statsScope){
-      state.statsScope = hotData.statsScope;
-    }
-    render();
-    wireStaticEvents();
-    wirePager();
-    syncScopeToggleUI();
-    if (hotData && typeof hotData.pageIndex === "number"){
-      setPage(hotData.pageIndex, false);
-    }
-    boot();
-    if (state.statsScope === "year"){
-      // subscribeYear needs dbNS, deferred until boot resolves it
-      var waitForDb = setInterval(function(){
-        if (state.dbNS){ clearInterval(waitForDb); subscribeYear(); }
-      }, 100);
-      setTimeout(function(){ clearInterval(waitForDb); }, 5000);
-    }
-    if (hotData && hotData.dayModalOpen && hotData.selectedDate){
-      setTimeout(function(){ openDayModal(hotData.selectedDate); }, 50);
-    }
-  }
-
-  function syncScopeToggleUI(){
-    Array.prototype.forEach.call(document.querySelectorAll("#scopeToggle button"), function(b){
-      b.classList.toggle("active", b.getAttribute("data-scope") === state.statsScope);
-    });
-  }
-
-  async function boot(){
-    if (!window.claude || typeof window.claude.use !== "function"){
-      document.getElementById("offlineBanner").hidden = false;
-      return;
-    }
-    try{
-      state.dbNS = await window.claude.use("db");
-    }catch(e){ state.dbNS = null; }
-    try{
-      state.assetsNS = await window.claude.use("assets");
-    }catch(e){ state.assetsNS = null; }
-
-    if (!state.dbNS){
-      document.getElementById("offlineBanner").hidden = false;
-      return;
-    }
-    document.getElementById("offlineBanner").hidden = true;
-    state.dbReady = true;
-    subscribeSettings();
-    subscribeMonth();
-  }
-
-  function subscribeSettings(){
-    if (!state.dbNS) return;
-    if (unsubSettings) unsubSettings();
-    unsubSettings = state.dbNS.doc("settings/general").onSnapshot(function(snap){
-      var data = snap.exists ? snap.data() : null;
-      state.currency = (data && data.currency) ? data.currency : "$";
-      state.krwRate = (data && data.krwRate) ? Number(data.krwRate) : 1343;
-      state.startingCapital = (data && data.startingCapital) ? Number(data.startingCapital) : 0;
-      var input = document.getElementById("currencyInput");
-      if (document.activeElement !== input) input.value = state.currency;
-      var rateInput = document.getElementById("krwRateInput");
-      if (document.activeElement !== rateInput) rateInput.value = state.krwRate;
-      var capInput = document.getElementById("startingCapitalInput");
-      if (document.activeElement !== capInput) capInput.value = state.startingCapital || "";
-      render();
-    }, function(){ /* ignore */ });
-  }
-
-  function subscribeMonth(){
-    if (!state.dbNS) return;
-    if (unsubTrades) { unsubTrades(); unsubTrades = null; }
-    var y = state.viewYear, m = state.viewMonth;
-    var daysInMonth = new Date(y, m+1, 0).getDate();
-    var start = ymd(y,m,1);
-    var end = ymd(y,m,daysInMonth);
-    var q = state.dbNS.collection("trades").where("date",">=",start).where("date","<=",end).orderBy("date","asc");
-    unsubTrades = q.onSnapshot(function(snap){
-      var trades = [];
-      snap.docs.forEach(function(d){
-        var data = d.data() || {};
-        trades.push(Object.assign({id: d.id}, data));
-      });
-      state.trades = trades;
-      var byDate = {};
-      trades.forEach(function(t){
-        if (!byDate[t.date]) byDate[t.date] = [];
-        byDate[t.date].push(t);
-      });
-      state.tradesByDate = byDate;
-      render();
-      if (state.selectedDate) renderModalList();
-    }, function(err){
-      console.error("trades subscription error", err);
-    });
-  }
-
-  function subscribeYear(){
-    if (!state.dbNS) return;
-    var y = state.viewYear;
-    if (unsubYear && yearSubscribedFor === y) return; // already subscribed to this year
-    if (unsubYear) { unsubYear(); unsubYear = null; }
-    yearSubscribedFor = y;
-    var start = ymd(y,0,1);
-    var end = ymd(y,11,31);
-    var q = state.dbNS.collection("trades").where("date",">=",start).where("date","<=",end).orderBy("date","asc");
-    unsubYear = q.onSnapshot(function(snap){
-      var trades = [];
-      snap.docs.forEach(function(d){
-        var data = d.data() || {};
-        trades.push(Object.assign({id: d.id}, data));
-      });
-      state.yearTrades = trades;
-      render();
-    }, function(err){
-      console.error("year trades subscription error", err);
-    });
-  }
-
-  function maybeResyncYear(){
-    if (state.statsScope === "year" && state.dbNS) subscribeYear();
-  }
-
-  /* ---------------- rendering ---------------- */
+  // ---- rendering ----
   function render(){
-    document.getElementById("monthLabel").textContent = state.viewYear + "년 " + MONTH_NAMES[state.viewMonth];
+    document.getElementById("monthLabel").textContent = currentYear + "년 " + currentMonth + "월";
+
+    var fw = firstWeekday(currentYear, currentMonth);
+    var dim = daysInMonth(currentYear, currentMonth);
+    var totalCells = fw + dim;
+    var weeks = Math.ceil(totalCells / 7);
+
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+
+    var monthTotal = 0;
+    var monthHasEntry = false;
+
+    for (var w = 0; w < weeks; w++){
+      var weekSum = 0, weekHasEntry = false;
+      for (var c = 0; c < 7; c++){
+        var dayNum = w*7 + c - fw + 1;
+        var inMonth = dayNum >= 1 && dayNum <= dim;
+        var tile = document.createElement("div");
+
+        if (!inMonth){
+          tile.className = "tile out";
+          grid.appendChild(tile);
+          continue;
+        }
+
+        var key = dateKey(currentYear, currentMonth, dayNum);
+        var entry = journalData[key];
+        var agg = dayAgg(entry);
+        var cls = "tile";
+        if (agg.count > 0){
+          if (agg.pnl > 0) cls += " green";
+          else if (agg.pnl < 0) cls += " red";
+          weekHasEntry = true;
+          weekSum += agg.pnl;
+          monthHasEntry = true;
+          monthTotal += agg.pnl;
+        }
+        tile.className = cls;
+
+        var html = '<div class="daynum">' + dayNum + '</div>';
+        if (agg.count > 0){
+          var pnlClass = agg.pnl > 0 ? "pos" : (agg.pnl < 0 ? "neg" : "zero");
+          html += '<div class="pnl ' + pnlClass + '">' + fmtUsd(agg.pnl) + '</div>';
+          html += '<div class="pnl-krw">' + fmtKrw(agg.pnl) + '</div>';
+          html += '<div class="trades">' + agg.count + '회</div>';
+        }
+        tile.innerHTML = html;
+        tile.addEventListener("click", (function(k, y, m, d){
+          return function(){ openModal(k, y, m, d); };
+        })(key, currentYear, currentMonth, dayNum));
+
+        grid.appendChild(tile);
+      }
+      var weekTile = document.createElement("div");
+      weekTile.className = "week-tile";
+      if (weekHasEntry){
+        var wColor = weekSum >= 0 ? "var(--green)" : "var(--red)";
+        weekTile.innerHTML =
+          '<div class="w-usd" style="color:' + wColor + '">' + fmtUsd(weekSum) + '</div>' +
+          '<div class="w-krw">' + fmtKrw(weekSum) + '</div>';
+      } else {
+        weekTile.innerHTML = '<div class="w-usd" style="color:var(--txt-dim)">-</div>';
+      }
+      grid.appendChild(weekTile);
+    }
+
+    var monthPnlEl = document.getElementById("monthPnl");
+    monthPnlEl.textContent = fmtUsd(monthTotal);
+    monthPnlEl.className = "value " + (monthTotal > 0 ? "pos" : (monthTotal < 0 ? "neg" : "zero"));
+    document.getElementById("monthPnlKrw").textContent = fmtKrw(monthTotal);
+
     renderStats();
-    renderDashboard();
-    renderCalendar();
-    syncPagerHeight();
+    renderChart();
+    renderRDistribution();
   }
 
-  // The Calendar and Dashboard pages sit side by side in a 200%-wide flex
-  // row so they can be swiped between, and a flex row's own height is
-  // driven by its tallest child even when that child is off-screen — so
-  // the (usually much longer) Dashboard page was forcing extra scrollable
-  // blank space under the shorter Calendar page. Pinning the viewport's
-  // height to just the active page's own content height fixes that; it
-  // reruns on every render (content/height can change) and page switch.
-  function syncPagerHeight(){
-    var viewport = document.getElementById("pagerViewport");
-    var pages = [document.getElementById("pageCalendar"), document.getElementById("pageDashboard")];
-    var active = pages[pageIndex];
-    if (!viewport || !active) return;
-    viewport.style.height = active.offsetHeight + "px";
+  function fmtR(n){
+    var s = n >= 0 ? "+" : "-";
+    return s + Math.abs(n).toFixed(2) + "R";
   }
-  var syncPagerHeightTimer = null;
-  function scheduleSyncPagerHeight(){
-    clearTimeout(syncPagerHeightTimer);
-    syncPagerHeightTimer = setTimeout(syncPagerHeight, 120);
-  }
-  window.addEventListener("resize", scheduleSyncPagerHeight);
-
-  function aggregateStats(trades){
-    var total = 0, wins = 0, losses = 0, beCount = 0;
-    var byDate = {};
-    trades.forEach(function(t){
-      var p = Number(t.pnl) || 0;
-      total += p;
-      byDate[t.date] = (byDate[t.date] || 0) + p;
-      if (isBE(t)){ beCount++; return; }
-      if (p > 0) wins++; else if (p < 0) losses++;
+  function statTilesHtml(items){
+    var html = "";
+    items.forEach(function(it){
+      var cls = "value" + (it[3] ? " " + it[3] : "");
+      html += '<div class="stat-item"><div class="label">' + it[0] + '</div><div class="' + cls + '">' + it[1] + '</div>';
+      if (it[2]) html += '<div class="value-krw">' + it[2] + '</div>';
+      html += '</div>';
     });
-    var winRate = (wins + losses) > 0 ? Math.round((wins / (wins + losses)) * 100) : null;
-    var bestDate = null, bestVal = -Infinity, worstDate = null, worstVal = Infinity;
-    Object.keys(byDate).forEach(function(d){
-      if (byDate[d] > bestVal){ bestVal = byDate[d]; bestDate = d; }
-      if (byDate[d] < worstVal){ worstVal = byDate[d]; worstDate = d; }
-    });
-    return { total: total, wins: wins, losses: losses, count: trades.length, beCount: beCount, winRate: winRate,
-      bestDate: bestDate, bestVal: bestDate ? bestVal : null, worstDate: worstDate, worstVal: worstDate ? worstVal : null,
-      byDate: byDate };
+    return html;
   }
 
-  // MDD is measured against total account assets, not just cumulative
-  // trading profit: peakEquity = startingCapital + (peak cumulative P&L
-  // reached before the worst drawdown began), so MDD% = maxDD ÷ peakEquity.
-  // Using cumulative P&L alone as the peak (the old behavior) understates or
-  // undefines the % whenever the account hasn't banked much profit yet —
-  // e.g. an early large loss would divide by a near-zero peak.
-  function tradeMetrics(trades, startingCapital){
-    startingCapital = Number(startingCapital) || 0;
-    var sorted = trades.slice().sort(function(a,b){
-      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
-      var ca = a.createdAt || "", cb = b.createdAt || "";
-      return ca < cb ? -1 : (ca > cb ? 1 : 0);
-    });
-    var cum = 0, peak = 0, maxDD = 0, peakAtWorst = 0;
-    var grossProfit = 0, grossLoss = 0, winSum = 0, lossSum = 0, wins = 0, losses = 0, countedTrades = 0;
-    sorted.forEach(function(t){
-      var p = Number(t.pnl) || 0;
-      cum += p;
-      if (cum > peak) peak = cum;
-      var dd = peak - cum;
-      if (dd > maxDD){ maxDD = dd; peakAtWorst = peak; }
-      if (!isBE(t)){
-        countedTrades++;
-        if (p > 0){ wins++; grossProfit += p; winSum += p; }
-        else if (p < 0){ losses++; grossLoss += Math.abs(p); lossSum += Math.abs(p); }
+  function computeMonthStats(){
+    var entries = [];
+    for (var key in journalData){
+      if (key.indexOf(currentYear + "-" + pad(currentMonth) + "-") === 0){
+        entries.push(journalData[key]);
       }
-    });
-    var avgWin = wins ? winSum / wins : 0;
-    var avgLoss = losses ? lossSum / losses : 0;
+    }
+    var dayAggs = entries.map(dayAgg);
+    var allTrades = getMonthTrades(currentYear, currentMonth);
+
+    var tradingDays = dayAggs.filter(function(a){ return a.count > 0; }).length;
+    var totalTrades = allTrades.length;
+    var totalPnl = allTrades.reduce(function(a,b){ return a + b; }, 0);
+    var winDays = dayAggs.filter(function(a){ return a.pnl > 0; }).length;
+    var lossDays = dayAggs.filter(function(a){ return a.pnl < 0; }).length;
+    var dayWinRate = tradingDays > 0 ? (winDays / tradingDays * 100) : 0;
+    var avgPerDay = tradingDays > 0 ? (totalPnl / tradingDays) : 0;
+    var bestDay = dayAggs.length ? Math.max.apply(null, dayAggs.map(function(a){ return a.pnl; })) : 0;
+    var worstDay = dayAggs.length ? Math.min.apply(null, dayAggs.map(function(a){ return a.pnl; })) : 0;
+
+    // BE(breakeven) band = 0 ~ 0.1R (in $: 0 ~ 0.1 * riskR). BE trades count as neither a win nor a loss.
+    // When 1R isn't set, fall back to the $0-only breakeven definition (no R basis to scale the band).
+    var beHi = riskR > 0 ? 0.1 * riskR : 0;
+    var winTrades = allTrades.filter(function(t){ return t > beHi; });
+    var beTrades = allTrades.filter(function(t){ return t >= 0 && t <= beHi; });
+    var lossTrades = allTrades.filter(function(t){ return t < 0; });
+    // Win Rate = Win / (Win + Loss) × 100 — BE trades are excluded from both sides of this ratio.
+    var tradeWinRate = (winTrades.length + lossTrades.length) > 0
+      ? (winTrades.length / (winTrades.length + lossTrades.length) * 100) : 0;
+    var avgWin = winTrades.length ? (winTrades.reduce(function(a,b){return a+b;},0) / winTrades.length) : 0;
+    var avgLoss = lossTrades.length ? (lossTrades.reduce(function(a,b){return a+b;},0) / lossTrades.length) : 0;
+
+    // Profit Factor = gross profit / gross loss (individual trades)
+    var grossProfit = winTrades.reduce(function(a,b){ return a+b; }, 0);
+    var grossLoss = Math.abs(lossTrades.reduce(function(a,b){ return a+b; }, 0));
     var pf = grossLoss > 0 ? (grossProfit / grossLoss) : (grossProfit > 0 ? Infinity : null);
-    var payoff = (wins > 0 && losses > 0) ? (avgWin / avgLoss) : null;
-    var expectancy = countedTrades ? ((grossProfit - grossLoss) / countedTrades) : null;
-    var netProfit = cum;
-    var recoveryFactor = maxDD > 0 ? (netProfit / maxDD) : (netProfit > 0 ? Infinity : null);
-    var peakEquityAtWorst = startingCapital + peakAtWorst;
-    var maxDDPct = (maxDD > 0 && peakEquityAtWorst > 0) ? (maxDD / peakEquityAtWorst) * 100 : null;
-    return { maxDD: maxDD, maxDDPct: maxDDPct, pf: pf, payoff: payoff, expectancy: expectancy, netProfit: netProfit,
-      recoveryFactor: recoveryFactor, wins: wins, losses: losses, countedTrades: countedTrades };
-  }
 
-  function fmtRatio(n){
-    if (n === null || n === undefined || isNaN(n)) return "–";
-    if (n === Infinity) return "∞";
-    if (n === -Infinity) return "-∞";
-    return n.toFixed(2);
-  }
-
-  function fmtMoneyAbs(n){
-    n = Number(n) || 0;
-    return state.currency + Math.abs(n).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-
-  function fmtDayShort(dstr){
-    if (!dstr) return "";
-    var parts = dstr.split("-");
-    return (Number(parts[1])) + "월 " + (Number(parts[2])) + "일";
-  }
-
-  function buildEquityPoints(scope, year, month, byDate, trades){
-    if (scope === "month"){
-      var daysInMonth = new Date(year, month+1, 0).getDate();
-      var cum = 0, pts = [];
-      for (var d = 1; d <= daysInMonth; d++){
-        cum += (byDate[ymd(year,month,d)] || 0);
-        pts.push(cum);
-      }
-      return pts;
-    } else {
-      var byMonth = new Array(12).fill(0);
-      trades.forEach(function(t){
-        var mm = Number((t.date||"").split("-")[1]) - 1;
-        if (mm >= 0 && mm < 12) byMonth[mm] += Number(t.pnl) || 0;
-      });
-      var cum2 = 0, pts2 = [];
-      for (var i = 0; i < 12; i++){ cum2 += byMonth[i]; pts2.push(cum2); }
-      return pts2;
-    }
-  }
-
-  function equityChartSvg(points, h, cls){
-    h = h || 100;
-    cls = cls || "hero-chart";
-    if (!points || points.length === 0) points = [0, 0];
-    var w = 400, padX = 4, padY = 8;
-    var min = Math.min(0, points.reduce(function(a,b){return Math.min(a,b);}, 0));
-    var max = Math.max(0, points.reduce(function(a,b){return Math.max(a,b);}, 0));
-    var range = (max - min) || 1;
-    var stepX = points.length > 1 ? (w - padX*2) / (points.length - 1) : 0;
-    function yOf(v){ return padY + (1 - (v - min) / range) * (h - padY*2); }
-    var coords = points.map(function(v, i){ return [padX + i*stepX, yOf(v)]; });
-    var line = coords.map(function(c,i){ return (i===0?"M":"L") + c[0].toFixed(1) + "," + c[1].toFixed(1); }).join(" ");
-    var last = points[points.length-1] || 0;
-    var color = last > 0 ? "var(--profit)" : (last < 0 ? "var(--loss)" : "var(--text-muted)");
-    var area = line + " L" + coords[coords.length-1][0].toFixed(1) + "," + (h-padY) + " L" + coords[0][0].toFixed(1) + "," + (h-padY) + " Z";
-    var zeroY = yOf(0);
-    var lastPt = coords[coords.length-1] || [padX, yOf(0)];
-    var svg = '<svg class="' + cls + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">';
-    svg += '<line x1="' + padX + '" y1="' + zeroY.toFixed(1) + '" x2="' + (w-padX) + '" y2="' + zeroY.toFixed(1) + '" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="3,3" vector-effect="non-scaling-stroke"></line>';
-    svg += '<path d="' + area + '" fill="' + color + '" opacity="0.13"></path>';
-    svg += '<path d="' + line + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>';
-    svg += '</svg>';
-    // The end-of-line dot is a plain CSS circle positioned by percentage,
-    // not an <svg><circle>: this chart uses preserveAspectRatio="none" to
-    // stretch a fixed-aspect viewBox to fill a fluid-width container, and
-    // that non-uniform x/y scaling would squash a real SVG circle into a
-    // lopsided ellipse. A CSS dot placed by percentage scales evenly with
-    // the container instead, so it always renders as a clean circle.
-    return '<div class="chart-svg-wrap" style="height:' + h + 'px;">' + svg +
-      '<span class="chart-end-dot" style="left:' + ((lastPt[0]/w)*100).toFixed(2) + '%; top:' + ((lastPt[1]/h)*100).toFixed(2) + '%; background:' + color + ';"></span>' +
-      '</div>';
-  }
-
-  function sortedByTime(trades){
-    return trades.slice().sort(function(a,b){
-      if (a.date !== b.date) return a.date < b.date ? -1 : 1;
-      var ca = a.createdAt || "", cb = b.createdAt || "";
-      return ca < cb ? -1 : (ca > cb ? 1 : 0);
-    });
-  }
-
-  function buildTradeEquityPoints(trades){
-    var sorted = sortedByTime(trades);
-    var cum = 0;
-    return sorted.map(function(t){ cum += Number(t.pnl) || 0; return cum; });
-  }
-
-  function buildDrawdownPoints(equityPoints){
-    var peak = 0, dd = [];
-    equityPoints.forEach(function(v){
-      if (v > peak) peak = v;
-      dd.push(v - peak);
-    });
-    return dd;
-  }
-
-  function drawdownChartSvg(points, h, cls){
-    h = h || 150;
-    cls = cls || "dash-chart";
-    if (!points || points.length === 0) points = [0, 0];
-    var w = 400, padX = 4, padY = 8;
-    var min = Math.min(0, points.reduce(function(a,b){return Math.min(a,b);}, 0));
-    var range = (0 - min) || 1;
-    var stepX = points.length > 1 ? (w - padX*2) / (points.length - 1) : 0;
-    function yOf(v){ return padY + (1 - (v - min) / range) * (h - padY*2); }
-    var coords = points.map(function(v, i){ return [padX + i*stepX, yOf(v)]; });
-    var line = coords.map(function(c,i){ return (i===0?"M":"L") + c[0].toFixed(1) + "," + c[1].toFixed(1); }).join(" ");
-    var zeroY = yOf(0);
-    var lastPt = coords[coords.length-1] || [padX, zeroY];
-    var area = line + " L" + lastPt[0].toFixed(1) + "," + zeroY.toFixed(1) + " L" + (coords[0]?coords[0][0].toFixed(1):padX) + "," + zeroY.toFixed(1) + " Z";
-    var color = min < 0 ? "var(--loss)" : "var(--text-muted)";
-    var svg = '<svg class="' + cls + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">';
-    svg += '<line x1="' + padX + '" y1="' + zeroY.toFixed(1) + '" x2="' + (w-padX) + '" y2="' + zeroY.toFixed(1) + '" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="3,3" vector-effect="non-scaling-stroke"></line>';
-    svg += '<path d="' + area + '" fill="' + color + '" opacity="0.15"></path>';
-    svg += '<path d="' + line + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>';
-    svg += '</svg>';
-    // Same fix as equityChartSvg: end dot drawn as a CSS circle placed by
-    // percentage so it isn't squashed into an ellipse by the non-uniform
-    // x/y stretch from preserveAspectRatio="none".
-    return '<div class="chart-svg-wrap" style="height:' + h + 'px;">' + svg +
-      '<span class="chart-end-dot" style="left:' + ((lastPt[0]/w)*100).toFixed(2) + '%; top:' + ((lastPt[1]/h)*100).toFixed(2) + '%; background:' + color + ';"></span>' +
-      '</div>';
-  }
-
-  /* ---------------- performance scoring (percentile bands) ----------------
-     Bands are reference cutoffs distilled from retail-trading education
-     sources (profit factor / Sharpe / recovery-factor / drawdown-severity
-     conventions), not institutional or regulatory standards. They exist so
-     the performance radar has *some* grounded scale rather than an
-     arbitrary one, and are explicitly flagged in the UI as a rough,
-     account-size-independent reference. Format: [[metricValue, percentile], ...]
-     ascending by metricValue, linearly interpolated between points. */
-  var PF_BANDS        = [[0,0],[1,20],[1.5,50],[2,75],[3,95],[5,100]];
-  var SHARPE_BANDS    = [[-1,5],[0,20],[1,50],[2,75],[3,90],[4,98],[6,100]];
-  var RECOVERY_BANDS  = [[-1,0],[0,10],[1,40],[3,70],[6,92],[10,100]];
-  var MDD_BANDS       = [[0,100],[10,88],[20,62],[30,38],[50,14],[80,0]];
-  var PNL_MONTH_BANDS = [[-5000,0],[0,20],[200,45],[1000,65],[3000,85],[8000,97],[20000,100]];
-  var PNL_YEAR_BANDS  = [[-30000,0],[0,20],[2000,45],[10000,65],[30000,85],[80000,97],[200000,100]];
-
-  function scoreFromBands(value, bands){
-    if (value === null || value === undefined || isNaN(value)) return null;
-    if (value === Infinity) return 100;
-    if (value === -Infinity) return 0;
-    if (value <= bands[0][0]) return bands[0][1];
-    for (var i = 1; i < bands.length; i++){
-      if (value <= bands[i][0]){
-        var x0 = bands[i-1][0], y0 = bands[i-1][1], x1 = bands[i][0], y1 = bands[i][1];
-        var t = (value - x0) / (x1 - x0);
-        return y0 + t * (y1 - y0);
+    // R-based: Total R, Expectancy, Sharpe (mean/stdev of each trade's R-multiple)
+    var totalR = null, expectancy = null, sharpe = null, avgWinR = null, avgLossR = null;
+    if (riskR > 0){
+      totalR = totalPnl / riskR;
+      if (totalTrades > 0) expectancy = totalR / totalTrades;
+      if (winTrades.length) avgWinR = avgWin / riskR;
+      if (lossTrades.length) avgLossR = avgLoss / riskR;
+      if (allTrades.length >= 2){
+        var rVals = allTrades.map(function(t){ return t / riskR; });
+        var meanR = rVals.reduce(function(a,b){ return a+b; }, 0) / rVals.length;
+        var variance = rVals.reduce(function(a,b){ return a + Math.pow(b - meanR, 2); }, 0) / (rVals.length - 1);
+        var sdR = Math.sqrt(variance);
+        sharpe = sdR > 0 ? (meanR / sdR) : null;
       }
     }
-    return bands[bands.length - 1][1];
-  }
 
-  // Small-sample distortion guard: pulls the raw percentile toward the
-  // neutral midpoint (50) when the trade count is low, so e.g. one lucky
-  // trade in a 2-trade month can't paint a perfect Sharpe/PF score.
-  // Reaches full confidence at 20 trades (commonly-cited "provisional below
-  // this" threshold); floors at 15% confidence rather than 0 so the shape
-  // still carries some signal.
-  function confidenceFactor(n){
-    var lo = 2, hi = 20, minC = 0.15;
-    if (n <= lo) return minC;
-    if (n >= hi) return 1;
-    return minC + (1 - minC) * ((n - lo) / (hi - lo));
-  }
-
-  function dampPercentile(raw, n){
-    if (raw === null || raw === undefined) return null;
-    var c = confidenceFactor(n);
-    return 50 + (raw - 50) * c;
-  }
-
-  function periodReturnsSeries(scope, year, month, byDate, trades){
-    if (scope === "month"){
-      var daysInMonth = new Date(year, month+1, 0).getDate();
-      var isCurrentMonth = (year === today.getFullYear() && month === today.getMonth());
-      var maxDay = isCurrentMonth ? today.getDate() : daysInMonth;
-      var arr = [];
-      for (var d = 1; d <= maxDay; d++){ arr.push(byDate[ymd(year, month, d)] || 0); }
-      return arr;
-    } else {
-      var byMonth = new Array(12).fill(0);
-      trades.forEach(function(t){
-        var mm = Number((t.date||"").split("-")[1]) - 1;
-        if (mm >= 0 && mm < 12) byMonth[mm] += Number(t.pnl) || 0;
-      });
-      var isCurrentYear = (year === today.getFullYear());
-      var maxMonth = isCurrentYear ? today.getMonth() : 11;
-      return byMonth.slice(0, maxMonth + 1);
+    // MDD — worst peak-to-trough drop on this month's cumulative equity curve
+    var mc = getMonthCumulative(currentYear, currentMonth);
+    var peak = mc.cum[0], mdd = 0;
+    for (var i = 0; i < mc.cum.length; i++){
+      peak = Math.max(peak, mc.cum[i]);
+      var dd = mc.cum[i] - peak;
+      if (dd < mdd) mdd = dd;
     }
-  }
+    var mddR = riskR > 0 ? (mdd / riskR) : null;
 
-  function sharpeRatioCalc(returns, periodsPerYear){
-    var n = returns.length;
-    if (n < 2) return null;
-    var mean = returns.reduce(function(a,b){ return a+b; }, 0) / n;
-    var variance = returns.reduce(function(a,b){ return a + Math.pow(b-mean, 2); }, 0) / (n - 1);
-    var sd = Math.sqrt(variance);
-    if (sd === 0) return mean > 0 ? Infinity : (mean < 0 ? -Infinity : null);
-    return (mean / sd) * Math.sqrt(periodsPerYear);
-  }
-
-  function barChartSvg(values, h, cls){
-    h = h || 170;
-    cls = cls || "dash-chart";
-    if (!values || values.length === 0) values = [0];
-    var w = 400, padX = 4, padTop = 8, padBottom = 8;
-    var maxAbs = 0;
-    values.forEach(function(v){ if (Math.abs(v) > maxAbs) maxAbs = Math.abs(v); });
-    if (maxAbs === 0) maxAbs = 1;
-    var plotH = h - padTop - padBottom;
-    var zeroY = padTop + plotH / 2;
-    var n = values.length;
-    var slot = (w - padX*2) / n;
-    var barW = Math.max(0.8, slot * 0.62);
-    var svg = '<svg class="' + cls + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">';
-    svg += '<line x1="' + padX + '" y1="' + zeroY.toFixed(1) + '" x2="' + (w-padX) + '" y2="' + zeroY.toFixed(1) + '" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="3,3"></line>';
-    values.forEach(function(v, i){
-      var x = padX + i*slot + (slot - barW)/2;
-      var barH = Math.abs(v) / maxAbs * (plotH/2);
-      var y = v >= 0 ? zeroY - barH : zeroY;
-      var color = v > 0 ? "var(--profit)" : (v < 0 ? "var(--loss)" : "var(--border-strong)");
-      svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.max(0.6, barH).toFixed(1) + '" rx="1.4" fill="' + color + '"></rect>';
-    });
-    svg += '</svg>';
-    return svg;
-  }
-
-  function radarChartSvg(items, size){
-    size = size || 320;
-    var cx = size/2, cy = size/2 - 2;
-    var maxR = size/2 - 88;
-    var n = items.length;
-    var angleStep = (Math.PI*2) / n;
-    var startAngle = -Math.PI/2;
-    function ptAt(idx, frac){
-      var ang = startAngle + idx*angleStep;
-      return [cx + Math.cos(ang)*maxR*frac, cy + Math.sin(ang)*maxR*frac];
-    }
-    var svg = '<svg class="radar-chart" viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">';
-    [0.2,0.4,0.6,0.8,1].forEach(function(frac){
-      var pts = [];
-      for (var i = 0; i < n; i++){ var p = ptAt(i, frac); pts.push(p[0].toFixed(1) + "," + p[1].toFixed(1)); }
-      svg += '<polygon points="' + pts.join(" ") + '" fill="none" stroke="var(--border)" stroke-width="1"></polygon>';
-    });
-    for (var i = 0; i < n; i++){
-      var ap = ptAt(i, 1);
-      svg += '<line x1="' + cx.toFixed(1) + '" y1="' + cy.toFixed(1) + '" x2="' + ap[0].toFixed(1) + '" y2="' + ap[1].toFixed(1) + '" stroke="var(--border)" stroke-width="1"></line>';
-    }
-    var dataPts = items.map(function(it, idx){
-      var frac = Math.max(0, Math.min(100, it.percentile == null ? 0 : it.percentile)) / 100;
-      return ptAt(idx, frac);
-    });
-    var dpts = dataPts.map(function(p){ return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ");
-    svg += '<polygon points="' + dpts + '" fill="var(--accent)" fill-opacity="0.22" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"></polygon>';
-    dataPts.forEach(function(p){
-      svg += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3.5" fill="var(--accent)"></circle>';
-    });
-    items.forEach(function(it, idx){
-      // The label block (title/value/score, 3 lines) sits on a ring just
-      // outside the data point. A FIXED ring (the old code always used
-      // 1.14×) works fine for low/mid scores, but a high score pushes the
-      // point itself out near that same ring, so the text ends up sitting
-      // on top of the point and the polygon edges meeting it. Push the
-      // ring out further than whatever this item's own point radius is,
-      // not just a flat multiplier, so the point can never catch up to its
-      // own label.
-      var frac = Math.max(0, Math.min(100, it.percentile == null ? 0 : it.percentile)) / 100;
-      var labelFrac = Math.max(1.14, frac + 0.42);
-      var lp = ptAt(idx, labelFrac);
-      var anchor = "middle";
-      if (lp[0] < cx - 14) anchor = "end"; else if (lp[0] > cx + 14) anchor = "start";
-      svg += '<text x="' + lp[0].toFixed(1) + '" y="' + (lp[1]-6).toFixed(1) + '" text-anchor="' + anchor + '" font-size="10" font-weight="700" font-family="IBM Plex Sans, sans-serif" fill="var(--text-2)">' + esc(it.label) + '</text>';
-      svg += '<text x="' + lp[0].toFixed(1) + '" y="' + (lp[1]+8).toFixed(1) + '" text-anchor="' + anchor + '" font-size="9" font-family="IBM Plex Mono, monospace" fill="var(--text-muted)">' + esc(it.valueText) + '</text>';
-      if (it.scoreText){
-        svg += '<text x="' + lp[0].toFixed(1) + '" y="' + (lp[1]+18).toFixed(1) + '" text-anchor="' + anchor + '" font-size="8.5" font-weight="700" font-family="IBM Plex Mono, monospace" fill="var(--accent)">' + esc(it.scoreText) + '</text>';
-      }
-    });
-    svg += '</svg>';
-    return svg;
-  }
-
-  function currentScopeTrades(){
-    return state.statsScope === "year" ? state.yearTrades : state.trades;
+    return {
+      entries: entries, dayAggs: dayAggs, allTrades: allTrades,
+      tradingDays: tradingDays, totalTrades: totalTrades, totalPnl: totalPnl,
+      winDays: winDays, lossDays: lossDays, dayWinRate: dayWinRate, avgPerDay: avgPerDay,
+      bestDay: bestDay, worstDay: worstDay,
+      winTrades: winTrades, lossTrades: lossTrades, beTrades: beTrades, tradeWinRate: tradeWinRate,
+      avgWin: avgWin, avgLoss: avgLoss, avgWinR: avgWinR, avgLossR: avgLossR,
+      pf: pf, grossProfit: grossProfit, grossLoss: grossLoss,
+      totalR: totalR, expectancy: expectancy, sharpe: sharpe,
+      mc: mc, mdd: mdd, mddR: mddR
+    };
   }
 
   function renderStats(){
-    var trades = currentScopeTrades();
-    var s = aggregateStats(trades);
-    var tm = tradeMetrics(trades, state.startingCapital);
-    var scope = state.statsScope;
-    var points = buildEquityPoints(scope, state.viewYear, state.viewMonth, s.byDate, trades);
+    var s = computeMonthStats();
+    var noR = riskR <= 0;
 
-    var heroLabel = scope === "year" ? (state.viewYear + "년 총손익") : "이번 달 총손익";
-    var heroEl = document.getElementById("heroCard");
-    var daysInMonth = new Date(state.viewYear, state.viewMonth+1, 0).getDate();
-    var chartLabels = scope === "year" ? ["1월", "12월"] : [(state.viewMonth+1) + "/1", (state.viewMonth+1) + "/" + daysInMonth];
-    var heroKrw = krwText(s.total);
+    var primary = [
+      ["Net P&L", fmtUsd(s.totalPnl), fmtKrw(s.totalPnl), s.totalPnl > 0 ? "pos" : (s.totalPnl < 0 ? "neg" : "")],
+      ["Total R", noR ? "-" : fmtR(s.totalR), null, (!noR && s.totalR > 0) ? "pos" : (!noR && s.totalR < 0 ? "neg" : "")],
+      ["Profit Factor", s.pf === null ? "-" : (s.pf === Infinity ? "∞" : s.pf.toFixed(2)),
+        "총이익 " + fmtUsd(s.grossProfit) + " · 총손실 " + fmtUsd(-s.grossLoss), ""],
+      ["Expectancy", noR || s.expectancy === null ? "-" : (fmtR(s.expectancy) + " / trade"),
+        "거래당 평균 " + fmtUsd(s.totalTrades ? Math.round(s.totalPnl / s.totalTrades) : 0),
+        (!noR && s.expectancy > 0) ? "pos" : (!noR && s.expectancy < 0 ? "neg" : "")],
+      ["Win Rate", s.tradeWinRate.toFixed(1) + "%",
+        s.winTrades.length + "승 " + s.lossTrades.length + "패" + (s.beTrades.length ? " · BE " + s.beTrades.length : ""), ""],
+      ["Max Drawdown", noR ? "-" : (s.mdd === 0 ? "0.00R" : fmtR(s.mddR).replace("+","")),
+        fmtUsd(s.mdd), (!noR && s.mdd < 0) ? "neg" : ""],
+      ["Trades", s.totalTrades + "건", s.tradingDays + "일 거래", ""]
+    ];
+    document.getElementById("statsPrimary").innerHTML = statTilesHtml(primary);
 
-    heroEl.innerHTML =
-      '<div class="hero-card">' +
-        '<div class="hero-label">' + heroLabel + '</div>' +
-        '<div class="hero-value-row">' +
-          '<span class="hero-value num ' + pnlClass(s.total) + '">' + fmtMoney(s.total) + '</span>' +
-        '</div>' +
-        (heroKrw ? '<div class="hero-krw">' + heroKrw + '</div>' : '') +
-        '<div class="hero-chart-wrap">' +
-          equityChartSvg(points) +
-          '<div class="hero-chart-labels"><span>' + chartLabels[0] + '</span><span>' + chartLabels[1] + '</span></div>' +
-        '</div>' +
-      '</div>';
+    var payoffRatio = (!noR && s.avgWinR !== null && s.avgLossR !== null && s.avgLossR !== 0)
+      ? Math.abs(s.avgWinR / s.avgLossR) : null;
+    var bestDayR = (!noR && s.dayAggs.length) ? s.bestDay / riskR : null;
+    var worstDayR = (!noR && s.dayAggs.length) ? s.worstDay / riskR : null;
 
+    var secondary = [
+      ["Trading Days", s.tradingDays + "일", s.winDays + "수익 / " + s.lossDays + "손실", ""],
+      ["Avg Win", (noR || s.avgWinR === null) ? "-" : fmtR(s.avgWinR),
+        s.winTrades.length ? fmtUsd(Math.round(s.avgWin)) : null,
+        (!noR && s.avgWinR !== null) ? "pos" : ""],
+      ["Avg Loss", (noR || s.avgLossR === null) ? "-" : fmtR(s.avgLossR),
+        s.lossTrades.length ? fmtUsd(Math.round(s.avgLoss)) : null,
+        (!noR && s.avgLossR !== null) ? "neg" : ""],
+      ["Payoff Ratio", payoffRatio === null ? "-" : (payoffRatio.toFixed(2) + " : 1"), null, ""],
+      ["Best / Worst Day", (bestDayR === null || worstDayR === null) ? "-" : (fmtR(bestDayR) + " / " + fmtR(worstDayR)),
+        s.dayAggs.length ? (fmtUsd(s.bestDay) + " / " + fmtUsd(s.worstDay)) : null, ""]
+    ];
+    document.getElementById("statsSecondaryGrid").innerHTML = statTilesHtml(secondary);
   }
 
-  // Top-decile profit dependency: what share of total gross profit comes
-  // from just the top 10% of winning trades (by size). At least 1 trade
-  // counts as "the top 10%" even when 10% of the winner count rounds to
-  // less than one.
-  function topTradeDependency(trades){
-    var wins = [];
-    trades.forEach(function(t){
-      if (isBE(t)) return;
-      var p = Number(t.pnl) || 0;
-      if (p > 0) wins.push({ trade: t, pnl: p });
-    });
-    if (!wins.length) return { pct: null, count: 0, topTrades: [] };
-    wins.sort(function(a,b){ return b.pnl - a.pnl; });
-    var grossProfit = wins.reduce(function(s,w){ return s + w.pnl; }, 0);
-    var topCount = Math.max(1, Math.ceil(wins.length * 0.1));
-    var topSum = wins.slice(0, topCount).reduce(function(s,w){ return s + w.pnl; }, 0);
-    if (grossProfit <= 0) return { pct: null, count: topCount, topTrades: [] };
-    return { pct: (topSum / grossProfit) * 100, count: topCount, topTrades: wins.slice(0, topCount).map(function(w){ return w.trade; }) };
-  }
+  // ---- R Distribution (histogram of every trade's R-multiple this month) ----
+  function renderRDistribution(){
+    var allTrades = getMonthTrades(currentYear, currentMonth);
+    var container = document.getElementById("rDistRows");
 
-  function renderDashboard(){
-    var trades = currentScopeTrades();
-    var s = aggregateStats(trades);
-    var tm = tradeMetrics(trades, state.startingCapital);
-    var scope = state.statsScope;
-    var sorted = sortedByTime(trades);
-    var points = buildTradeEquityPoints(trades);
-    var ddPoints = buildDrawdownPoints(points);
-    var dep = topTradeDependency(trades);
-    var N = trades.length;
-
-    var periodLabel = scope === "year" ? (state.viewYear + "년 상세 통계") : (state.viewYear + "년 " + MONTH_NAMES[state.viewMonth] + " 상세 통계");
-    var dashboardEl = document.getElementById("dashboardContent");
-
-    if (!N){
-      dashboardEl.innerHTML =
-        '<div class="dash-period">' + periodLabel + '</div>' +
-        '<div class="dash-chart-card"><div class="empty-state">' +
-          '<div class="glyph">📊</div><h3>' + (scope==="year" ? "올해" : "이번 달") + ' 기록된 거래가 없어요</h3>' +
-          '<p>거래를 기록하면 여기에 상세 통계와 그래프가 표시돼요.</p>' +
-        '</div></div>';
+    if (riskR <= 0){
+      container.innerHTML = '<div class="sub" style="margin-top:4px;">1R 값을 설정하면 R 분포가 표시됩니다.</div>';
       return;
     }
-
-    var daysInMonth = new Date(state.viewYear, state.viewMonth+1, 0).getDate();
-    var fallbackLabels = scope === "year" ? ["1월", "12월"] : [(state.viewMonth+1) + "/1", (state.viewMonth+1) + "/" + daysInMonth];
-    var chartLabels = sorted.length
-      ? [fmtDayShort(sorted[0].date), fmtDayShort(sorted[sorted.length-1].date)]
-      : fallbackLabels;
-
-    // MDD % (total-assets basis) now comes straight from tradeMetrics(), which
-    // weighs it against startingCapital + peak P&L instead of peak P&L alone.
-    var maxDDPct = tm.maxDDPct;
-
-    // bar chart: daily P&L for month scope, monthly P&L for year scope
-    var barValues, barLabels, barTitle;
-    if (scope === "month"){
-      barValues = [];
-      for (var bd = 1; bd <= daysInMonth; bd++){ barValues.push(s.byDate[ymd(state.viewYear, state.viewMonth, bd)] || 0); }
-      barTitle = "일별 손익";
-      barLabels = ["1일", daysInMonth + "일"];
-    } else {
-      var byMonthArr = new Array(12).fill(0);
-      trades.forEach(function(t){
-        var mm = Number((t.date||"").split("-")[1]) - 1;
-        if (mm >= 0 && mm < 12) byMonthArr[mm] += Number(t.pnl) || 0;
-      });
-      barValues = byMonthArr;
-      barTitle = "월별 손익";
-      barLabels = ["1월", "12월"];
-    }
-
-    // Sharpe ratio — same granularity as the bar chart above it (daily for
-    // month scope, monthly for year scope) so the two stay consistent.
-    var returnsSeries = periodReturnsSeries(scope, state.viewYear, state.viewMonth, s.byDate, trades);
-    var periodsPerYear = scope === "month" ? 252 : 12;
-    var sharpe = sharpeRatioCalc(returnsSeries, periodsPerYear);
-
-    // ----- radar (pentagon) performance profile -----
-    var pnlBands = scope === "month" ? PNL_MONTH_BANDS : PNL_YEAR_BANDS;
-    var radarRaw = [
-      { label:"Recovery Factor", value: tm.recoveryFactor, bands: RECOVERY_BANDS, fmt: fmtRatio },
-      { label:"Sharpe Ratio", value: sharpe, bands: SHARPE_BANDS, fmt: fmtRatio },
-      { label:"Profit Factor", value: tm.pf, bands: PF_BANDS, fmt: fmtRatio },
-      { label:"MDD %", value: (maxDDPct==null ? 0 : maxDDPct), bands: MDD_BANDS, fmt: function(){ return (maxDDPct==null ? "0.0" : maxDDPct.toFixed(1)) + "%"; } },
-      { label:"기간 수익금", value: s.total, bands: pnlBands, fmt: fmtMoney }
+    // fine-grained bins: (-Inf,-10] (-10,-5] (-5,-3] (-3,-2] (-2,-1.5] (-1.5,-1] (-1,-0.5] (-0.5,0) | {0} (exact breakeven) | (0,0.5] (0.5,1] (1,1.5] (1.5,2] (2,3] (3,5] (5,10] (10,Inf)
+    var bins = [
+      { label: "≤ -10R",   test: function(r){ return r <= -10; },           kind: "loss" },
+      { label: "-10~-5R",  test: function(r){ return r > -10 && r <= -5; }, kind: "loss" },
+      { label: "-5~-3R",   test: function(r){ return r > -5 && r <= -3; },  kind: "loss" },
+      { label: "-3~-2R",   test: function(r){ return r > -3 && r <= -2; },  kind: "loss" },
+      { label: "-2~-1.5R", test: function(r){ return r > -2 && r <= -1.5; }, kind: "loss" },
+      { label: "-1.5~-1R", test: function(r){ return r > -1.5 && r <= -1; }, kind: "loss" },
+      { label: "-1~-0.5R", test: function(r){ return r > -1 && r <= -0.5; }, kind: "loss" },
+      { label: "-0.5~0R",  test: function(r){ return r > -0.5 && r < 0; },  kind: "loss" },
+      { label: "0~0.1R",   test: function(r){ return r >= 0 && r <= 0.1; }, kind: "even" },
+      { label: "0.1~0.5R", test: function(r){ return r > 0.1 && r <= 0.5; }, kind: "win" },
+      { label: "0.5~1R",   test: function(r){ return r > 0.5 && r <= 1; },  kind: "win" },
+      { label: "1~1.5R",   test: function(r){ return r > 1 && r <= 1.5; },  kind: "win" },
+      { label: "1.5~2R",   test: function(r){ return r > 1.5 && r <= 2; },  kind: "win" },
+      { label: "2~3R",     test: function(r){ return r > 2 && r <= 3; },    kind: "win" },
+      { label: "3~5R",     test: function(r){ return r > 3 && r <= 5; },    kind: "win" },
+      { label: "5~10R",    test: function(r){ return r > 5 && r <= 10; },   kind: "win" },
+      { label: "≥ 10R",    test: function(r){ return r > 10; },             kind: "win" }
     ];
-    var radarItems = radarRaw.map(function(it){
-      var raw = scoreFromBands(it.value, it.bands);
-      var pct = dampPercentile(raw, N);
-      return { label: it.label, percentile: pct, valueText: it.fmt(it.value), scoreText: (pct==null ? "–" : Math.round(pct) + "점") };
-    });
-    var validScores = radarItems.filter(function(it){ return it.percentile != null; }).map(function(it){ return it.percentile; });
-    var overallScore = validScores.length ? Math.round(validScores.reduce(function(a,b){ return a+b; }, 0) / validScores.length) : null;
-    var sampleNote;
-    if (N < 10) sampleNote = "⚠ 표본 " + N + "건 — 데이터가 적어 참고용으로만 활용하세요.";
-    else if (N < 20) sampleNote = "표본 " + N + "건 — 신뢰도가 다소 낮을 수 있어요.";
-    else sampleNote = "표본 " + N + "건 기준";
+    var rVals = allTrades.map(function(t){ return t / riskR; });
+    var counts = bins.map(function(b){ return rVals.filter(b.test).length; });
+    var maxCount = Math.max.apply(null, counts.concat([1]));
 
-    var mddKrw = tm.maxDD > 0 ? krwText(-tm.maxDD) : "";
-    var expKrw = tm.expectancy != null ? krwText(tm.expectancy) : "";
-    var bestKrw = s.bestVal != null ? krwText(s.bestVal) : "";
-    var worstKrw = s.worstVal != null ? krwText(s.worstVal) : "";
-    var totalKrw = krwText(s.total);
-
-    var tiles = [
-      { label:"총 손익", value: fmtMoney(s.total), sub: (s.count ? s.count + "건의 거래" + (s.beCount ? " · BE " + s.beCount + "건" : "") : "기록 없음"), cls: pnlClass(s.total), krw: totalKrw, wide: true },
-      { label:"거래 횟수", value: String(s.count), sub: scope==="year" ? "올해 기록된 거래" : "이번 달 기록된 거래" },
-      { label:"수익/손실", value: s.wins + "승 " + s.losses + "패", sub: "승률 " + (s.winRate===null ? "–" : s.winRate + "%") + (s.beCount ? " (BE 제외)" : "") },
-      { label:"Profit Factor", value: fmtRatio(tm.pf), sub:"총이익 ÷ 총손실" },
-      { label:"Recovery Factor", value: fmtRatio(tm.recoveryFactor), sub:"순이익 ÷ 최대낙폭" },
-      { label:"Sharpe Ratio", value: fmtRatio(sharpe), sub: scope==="month" ? "일별 손익 기준(연환산)" : "월별 손익 기준(연환산)" },
-      { label:"기대값 (E)", value: (tm.expectancy==null ? "–" : fmtMoney(tm.expectancy)), sub:"거래당 평균 손익", cls: tm.expectancy!=null?pnlClass(tm.expectancy):"", krw: expKrw },
-      { label:"최대 낙폭 (MDD)", value: (tm.maxDD > 0 ? "-" + fmtMoneyAbs(tm.maxDD) : fmtMoneyAbs(0)), sub: (maxDDPct!=null ? "총자산 대비 " + maxDDPct.toFixed(1) + "%" : (tm.maxDD > 0 ? "설정에서 총자산을 입력하면 %가 표시돼요" : "최대 자본 감소폭")), cls: tm.maxDD>0 ? "loss" : "", krw: mddKrw },
-      { label:"평균 손익비", value: fmtRatio(tm.payoff), sub:"평균이익 ÷ 평균손실" },
-      { label:"최고의 날", value: (s.bestVal!=null ? fmtMoney(s.bestVal) : "–"), sub: (s.bestDate ? fmtDayShort(s.bestDate) : "기록 없음"), cls: s.bestVal!=null?pnlClass(s.bestVal):"", krw: bestKrw },
-      { label:"최악의 날", value: (s.worstVal!=null ? fmtMoney(s.worstVal) : "–"), sub: (s.worstDate ? fmtDayShort(s.worstDate) : "기록 없음"), cls: s.worstVal!=null?pnlClass(s.worstVal):"", krw: worstKrw },
-      { label:"상위 수익 거래 의존도", value: (dep.pct!=null ? dep.pct.toFixed(0) + "%" : "–"), sub: (dep.pct!=null ? "상위 10% 거래(" + dep.count + "건)가 총이익에서 차지" : "기록 없음") }
-    ];
-
-    var tilesHtml = tiles.map(function(c){
-      return '<div class="stat-chip' + (c.wide?" wide":"") + '">' +
-        '<div class="stat-chip-label">' + c.label + '</div>' +
-        '<div class="stat-chip-value num ' + (c.cls||"") + '">' + c.value + '</div>' +
-        '<div class="stat-chip-sub">' + c.sub + '</div>' +
-        (c.krw ? '<div class="stat-chip-krw num">' + c.krw + '</div>' : '') +
-      '</div>';
-    }).join("");
-
-    var html =
-      '<div class="dash-period">' + periodLabel + '</div>' +
-      '<div class="dash-charts">' +
-        '<div class="dash-chart-card">' +
-          '<div class="dash-chart-label">Equity Curve · 누적 손익</div>' +
-          '<div class="dash-chart-value num ' + pnlClass(s.total) + '">' + fmtMoney(s.total) + '</div>' +
-          equityChartSvg(points, 220, "dash-chart") +
-          '<div class="dash-chart-labels"><span>' + chartLabels[0] + '</span><span>' + chartLabels[1] + '</span></div>' +
-        '</div>' +
-        '<div class="dash-chart-card">' +
-          '<div class="dash-chart-label">Drawdown Curve · 낙폭</div>' +
-          '<div class="dash-chart-value num ' + (tm.maxDD>0?"loss":"") + '">' + (tm.maxDD>0 ? "-" + fmtMoneyAbs(tm.maxDD) : fmtMoneyAbs(0)) + '</div>' +
-          drawdownChartSvg(ddPoints, 220, "dash-chart") +
-          '<div class="dash-chart-labels"><span>' + chartLabels[0] + '</span><span>' + chartLabels[1] + '</span></div>' +
-        '</div>' +
-        '<div class="dash-chart-card">' +
-          '<div class="dash-chart-label">' + barTitle + '</div>' +
-          barChartSvg(barValues, 170, "dash-chart bar-chart") +
-          '<div class="dash-chart-labels"><span>' + barLabels[0] + '</span><span>' + barLabels[1] + '</span></div>' +
-        '</div>' +
-        '<div class="dash-chart-card radar-card">' +
-          '<div class="dash-chart-label">종합 성과 평가</div>' +
-          (overallScore != null ? '<div class="radar-score num">' + overallScore + '<span style="font-size:14px;color:var(--text-muted);">/100</span></div>' : '') +
-          '<div class="radar-chart-wrap">' + radarChartSvg(radarItems) + '</div>' +
-          '<div class="radar-note">' + sampleNote + ' · 개인 트레이더 참고 기준(계좌 규모·투자 목적에 따라 다를 수 있음)</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="dash-grid">' + tilesHtml + '</div>';
-
-    dashboardEl.innerHTML = html;
-  }
-
-  function renderCalendar(){
-    var y = state.viewYear, m = state.viewMonth;
-    var daysInMonth = new Date(y, m+1, 0).getDate();
-    var firstWeekday = new Date(y, m, 1).getDay();
-    var totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
-    var grid = document.getElementById("calGrid");
     var html = "";
-    var tStr = todayStr();
-
-    for (var i = 0; i < totalCells; i++){
-      var dayNum = i - firstWeekday + 1;
-      if (dayNum < 1 || dayNum > daysInMonth){
-        html += '<div class="cell empty"></div>';
-        continue;
-      }
-      var dstr = ymd(y, m, dayNum);
-      var weekday = (firstWeekday + dayNum - 1) % 7;
-      var dayTrades = state.tradesByDate[dstr] || [];
-      var pnl = 0, wins = 0, losses = 0;
-      dayTrades.forEach(function(t){
-        var p = Number(t.pnl) || 0;
-        pnl += p;
-        if (isBE(t)) return;
-        if (p > 0) wins++; else if (p < 0) losses++;
-      });
-      var classes = ["cell"];
-      if (weekday === 0 || weekday === 6) classes.push("weekend");
-      if (dstr === tStr) classes.push("today");
-      if (dayTrades.length){
-        if (pnl > 0) classes.push("has-profit");
-        else if (pnl < 0) classes.push("has-loss");
-      }
-      var metaText = "";
-      if (dayTrades.length){
-        var wr = (wins + losses) > 0 ? Math.round((wins/(wins+losses))*100) + "%" : "–";
-        metaText = dayTrades.length + "건·" + wr;
-      }
-      html += '<button type="button" class="' + classes.join(" ") + '" data-date="' + dstr + '">' +
-        '<span class="cell-date num">' + dayNum + '</span>' +
-        (dayTrades.length ? '<span class="cell-pnl num ' + pnlClass(pnl) + '">' + fmtMoneyCompact(pnl) + '</span>' : '') +
-        (metaText ? '<span class="cell-meta num">' + metaText + '</span>' : '') +
-        '</button>';
-    }
-    grid.innerHTML = html;
-    Array.prototype.forEach.call(grid.querySelectorAll(".cell[data-date]"), function(cell){
-      cell.addEventListener("click", function(){ openDayModal(cell.getAttribute("data-date")); });
-    });
-    fitCalendarText();
-  }
-
-  /* ---------------- day modal ---------------- */
-  var dayModal = document.getElementById("dayModal");
-  var modalTitle = document.getElementById("modalTitle");
-  var modalSub = document.getElementById("modalSub");
-  var modalBody = document.getElementById("modalBody");
-  var modalBackBtn = document.getElementById("modalBackBtn");
-
-  function fmtFullDate(dstr){
-    var parts = dstr.split("-").map(Number);
-    var d = new Date(parts[0], parts[1]-1, parts[2]);
-    return parts[0] + "년 " + (parts[1]) + "월 " + (parts[2]) + "일 " + WEEKDAY[d.getDay()] + "요일";
-  }
-
-  function openDayModal(dstr){
-    state.selectedDate = dstr;
-    state.editingTradeId = null;
-    modalBackBtn.hidden = true;
-    modalTitle.textContent = fmtFullDate(dstr).split(" ").slice(1).join(" ");
-    modalSub.textContent = "";
-    dayModal.classList.add("open");
-    renderModalList();
-  }
-
-  function closeDayModal(){
-    dayModal.classList.remove("open");
-    state.selectedDate = null;
-    state.editingTradeId = null;
-    state.formShot = null;
-  }
-
-  function renderModalList(){
-    if (!state.selectedDate) return;
-    modalBackBtn.hidden = true;
-    var dstr = state.selectedDate;
-    modalTitle.textContent = fmtFullDate(dstr).split(" ").slice(1).join(" ");
-    var trades = (state.tradesByDate[dstr] || []).slice();
-    var canEdit = !!state.dbNS;
-    var html = "";
-    html += '<button type="button" class="add-row-btn" id="addRowBtn">＋ 거래 추가</button>';
-    if (!trades.length){
-      html += '<div class="empty-state"><div class="glyph">🗒️</div><h3>이 날의 거래가 없습니다</h3><p>매매를 기록하면 손익과 승률이 이 날짜에 표시됩니다.</p></div>';
-    } else {
-      trades.forEach(function(t){
-        var pnl = Number(t.pnl) || 0;
-        var dirLabel = t.direction === "short" ? "SHORT" : (t.direction === "long" ? "LONG" : "미입력");
-        var dirClass = t.direction === "short" ? "short" : (t.direction === "long" ? "long" : "neutral");
-        var beChip = isBE(t) ? ' <span class="chip be">BE</span>' : "";
-        var priceLine = "";
-        if (t.entryPrice != null && t.entryPrice !== "") {
-          priceLine = fmtPrice(t.entryPrice) + (t.exitPrice != null && t.exitPrice !== "" ? " → " + fmtPrice(t.exitPrice) : "") +
-            (t.quantity != null && t.quantity !== "" ? " · 수량 " + t.quantity : "");
-        }
-        var tags = (t.tags || []);
-        var rowKrw = krwText(pnl);
-        html += '<div class="trade-card" data-id="' + t.id + '">' +
-          (t.screenshotId ? '<img class="trade-thumb" src="' + esc(window.__blobUrl(t.screenshotId)) + '" alt="차트 스크린샷" data-lightbox="' + t.screenshotId + '">' : '') +
-          '<div class="trade-main">' +
-            '<div class="trade-top">' +
-              '<span class="trade-symbol">' + esc(t.symbol || "종목 미입력") + ' <span class="chip ' + dirClass + '">' + dirLabel + '</span>' + beChip + '</span>' +
-              '<span class="trade-pnl-wrap"><span class="trade-pnl num ' + pnlClass(pnl) + '">' + fmtMoney(pnl) + '</span>' +
-              (rowKrw ? '<span class="trade-pnl-krw num">' + rowKrw + '</span>' : '') + '</span>' +
-            '</div>' +
-            (priceLine ? '<div class="trade-detail num">' + esc(priceLine) + '</div>' : '') +
-            (t.notes ? '<div class="trade-notes">' + esc(t.notes) + '</div>' : '') +
-            (tags.length ? '<div class="tag-row">' + tags.map(function(tg){ return '<span class="tag">' + esc(tg) + '</span>'; }).join("") + '</div>' : '') +
-            (canEdit ? '<div class="trade-actions">' +
-              '<button type="button" class="mini-btn" data-edit="' + t.id + '">수정</button>' +
-              '<button type="button" class="mini-btn danger" data-del="' + t.id + '">삭제</button>' +
-            '</div>' : '') +
-          '</div>' +
+    bins.forEach(function(b, i){
+      var pct = (counts[i] / maxCount) * 100;
+      var rowCls = "rdist-row" + (b.kind === "even" ? " zero-split" : "");
+      html += '<div class="' + rowCls + '">' +
+        '<div class="rlabel">' + b.label + '</div>' +
+        '<div class="rtrack"><div class="rbar ' + b.kind + '" style="width:' + pct + '%"></div></div>' +
+        '<div class="rcount">' + counts[i] + '</div>' +
         '</div>';
-      });
+    });
+    container.innerHTML = html;
+  }
+
+  // ---- trend chart (cumulative P&L for the current month) ----
+  var CHART_W = 900, CHART_H = 260;
+  var CHART_M = { left: 54, right: 64, top: 16, bottom: 28 };
+  var chartState = null; // {dim, cum, xScale, yScale, plot:{x0,x1,y0,y1}}
+
+  function niceStep(rough){
+    var pow = Math.pow(10, Math.floor(Math.log(rough) / Math.LN10));
+    var f = rough / pow;
+    var nf = f < 1.5 ? 1 : (f < 3 ? 2 : (f < 7 ? 5 : 10));
+    return nf * pow;
+  }
+  function niceTicks(min, max, count){
+    if (min === max){ min -= 1; max += 1; }
+    var step = niceStep((max - min) / count);
+    var start = Math.ceil(min / step) * step;
+    var ticks = [];
+    for (var v = start; v <= max + 1e-9; v += step){ ticks.push(Math.round(v * 100) / 100); }
+    if (ticks.indexOf(0) === -1 && min < 0 && max > 0) ticks.push(0);
+    ticks.sort(function(a,b){ return a-b; });
+    return ticks;
+  }
+  function axisTick(v){
+    var s = v < 0 ? "-$" : "$";
+    return s + Math.abs(Math.round(v)).toLocaleString("en-US");
+  }
+  function axisTickR(v){
+    var r = Math.round(v * 100) / 100;
+    var isInt = Math.abs(r - Math.round(r)) < 1e-9;
+    var s = r < 0 ? "-" : "";
+    return s + Math.abs(isInt ? Math.round(r) : r) + "R";
+  }
+  function getMonthDrawdown(mc){
+    // dollar drawdown series aligned to mc.cum (index 0..dim): peak-so-far minus current cumulative, always <= 0
+    var dd = [], peakArr = [];
+    var peak = mc.cum[0];
+    for (var i = 0; i < mc.cum.length; i++){
+      peak = Math.max(peak, mc.cum[i]);
+      peakArr.push(peak);
+      dd.push(mc.cum[i] - peak);
     }
-    modalBody.innerHTML = html;
-
-    var addBtn = document.getElementById("addRowBtn");
-    if (addBtn) addBtn.addEventListener("click", function(){ openForm(null); });
-    if (!canEdit && addBtn) { addBtn.disabled = true; addBtn.style.opacity = .5; addBtn.style.cursor = "not-allowed"; }
-
-    Array.prototype.forEach.call(modalBody.querySelectorAll("[data-edit]"), function(btn){
-      btn.addEventListener("click", function(){
-        var id = btn.getAttribute("data-edit");
-        var t = (state.tradesByDate[dstr] || []).find(function(x){ return x.id === id; });
-        if (t) openForm(t);
-      });
-    });
-    Array.prototype.forEach.call(modalBody.querySelectorAll("[data-del]"), function(btn){
-      wireDeleteButton(btn);
-    });
-    Array.prototype.forEach.call(modalBody.querySelectorAll("[data-lightbox]"), function(img){
-      img.addEventListener("click", function(){ openLightbox(img.getAttribute("src")); });
-    });
+    return { dd: dd, peak: peakArr };
   }
 
-  function wireDeleteButton(btn){
-    var confirming = false;
-    var timer = null;
-    btn.addEventListener("click", function(){
-      var id = btn.getAttribute("data-del");
-      if (!confirming){
-        confirming = true;
-        btn.textContent = "정말 삭제할까요?";
-        btn.classList.add("confirm");
-        timer = setTimeout(function(){
-          confirming = false;
-          btn.textContent = "삭제";
-          btn.classList.remove("confirm");
-        }, 4000);
-        return;
-      }
-      clearTimeout(timer);
-      deleteTrade(id);
-    });
+  function renderChart(){
+    var mc = getMonthCumulative(currentYear, currentMonth);
+    if (chartMode === "drawdown") renderDrawdownChart(mc);
+    else renderEquityChart(mc);
   }
 
-  async function deleteTrade(id){
-    if (!state.dbNS) return;
-    var t = state.trades.find(function(x){ return x.id === id; });
-    try{
-      await state.dbNS.collection("trades").doc(id).delete();
-      if (t && t.screenshotId && state.assetsNS){
-        state.assetsNS.delete(t.screenshotId).catch(function(){});
-      }
-    }catch(e){ console.error("delete failed", e); }
-  }
+  function renderEquityChart(mc){
+    document.getElementById("chartTitle").textContent = "이번 달 Equity Curve";
+    document.getElementById("chartSub").textContent = "일별 누적 손익 (초록 = 누적 수익 구간, 빨강 = 누적 손실 구간)";
 
-  function fmtPrice(n){
-    var num = Number(n);
-    if (isNaN(num)) return String(n);
-    return state.currency + num.toLocaleString("en-US", {maximumFractionDigits: 4});
-  }
+    var dim = mc.dim, cum = mc.cum;
 
-  /* ---------------- form ---------------- */
-  function openForm(trade){
-    state.editingTradeId = trade ? trade.id : null;
-    state.formShot = trade && trade.screenshotId ? {id: trade.screenshotId, url: window.__blobUrl(trade.screenshotId)} : null;
-    modalBackBtn.hidden = false;
-    modalTitle.textContent = trade ? "거래 수정" : "새 거래";
-    modalSub.textContent = fmtFullDate(state.selectedDate);
+    var plotX0 = CHART_M.left, plotX1 = CHART_W - CHART_M.right;
+    var plotY0 = CHART_M.top, plotY1 = CHART_H - CHART_M.bottom;
+    var plotW = plotX1 - plotX0, plotH = plotY1 - plotY0;
 
-    var direction = trade ? (trade.direction || null) : null;
-    var isBEVal = trade ? !!trade.isBE : false;
-    modalBody.innerHTML =
-      '<div class="field">' +
-        '<label for="fDate">날짜</label>' +
-        '<input type="date" id="fDate" value="' + esc(state.selectedDate) + '">' +
-      '</div>' +
-      '<div class="field">' +
-        '<label for="fPnl">손익 <span style="color:var(--loss)">*</span></label>' +
-        '<input type="number" step="any" id="fPnl" placeholder="0.00" value="' + (trade && trade.pnl!=null ? trade.pnl : "") + '">' +
-      '</div>' +
-      '<div class="field">' +
-        '<label for="fSymbol">종목 <span class="stat-chip-sub" style="text-transform:none">(선택)</span></label>' +
-        '<input type="text" id="fSymbol" placeholder="예: AAPL, BTC/USDT" value="' + esc(trade ? trade.symbol : "") + '">' +
-      '</div>' +
-      '<div class="field">' +
-        '<label>방향 <span class="stat-chip-sub" style="text-transform:none">(선택)</span></label>' +
-        '<div class="seg" id="fDirection">' +
-          '<button type="button" data-dir="long" class="' + (direction==="long"?"active long":"") + '">LONG</button>' +
-          '<button type="button" data-dir="short" class="' + (direction==="short"?"active short":"") + '">SHORT</button>' +
-        '</div>' +
-      '</div>' +
-      '<div class="field">' +
-        '<button type="button" id="fBeToggle" class="be-toggle' + (isBEVal?" active":"") + '">BE(본전) 트레이드로 표시</button>' +
-        '<div class="stat-chip-sub" style="text-transform:none;margin-top:6px;">체크하면 이 거래는 승률·PF·기대값 등 통계에서 제외돼요.</div>' +
-      '</div>' +
-      '<div class="field-row">' +
-        '<div class="field"><label for="fEntry">진입가 (선택)</label><input type="number" step="any" id="fEntry" value="' + (trade && trade.entryPrice!=null ? trade.entryPrice : "") + '"></div>' +
-        '<div class="field"><label for="fExit">청산가 (선택)</label><input type="number" step="any" id="fExit" value="' + (trade && trade.exitPrice!=null ? trade.exitPrice : "") + '"></div>' +
-      '</div>' +
-      '<div class="field">' +
-        '<label for="fQty">수량 (선택)</label>' +
-        '<input type="number" step="any" id="fQty" value="' + (trade && trade.quantity!=null ? trade.quantity : "") + '">' +
-      '</div>' +
-      '<div class="pnl-hint" id="pnlHint"></div>' +
-      '<div class="field">' +
-        '<label for="fNotes">메모</label>' +
-        '<textarea id="fNotes" placeholder="매매 근거, 심리 상태, 복기 내용 등">' + esc(trade ? trade.notes : "") + '</textarea>' +
-      '</div>' +
-      '<div class="field">' +
-        '<label for="fTags">태그 (쉼표로 구분)</label>' +
-        '<input type="text" id="fTags" placeholder="예: 돌파매매, 눌림목, FOMC" value="' + esc(trade && trade.tags ? trade.tags.join(", ") : "") + '">' +
-      '</div>' +
-      '<div class="field">' +
-        '<label>차트 스크린샷</label>' +
-        '<div class="shot-row" id="shotRow"></div>' +
-        '<input type="file" id="fShotInput" accept="image/*" hidden>' +
-      '</div>' +
-      '<div class="error-text" id="formError" hidden></div>' +
-      '<div class="form-footer">' +
-        '<button type="button" class="btn-cancel" id="fCancel">취소</button>' +
-        '<button type="button" class="btn-save" id="fSave">저장</button>' +
-      '</div>';
+    var yMin = Math.min.apply(null, cum.concat([0]));
+    var yMax = Math.max.apply(null, cum.concat([0]));
+    if (yMin === yMax){ yMin -= 100; yMax += 100; }
+    var pad = (yMax - yMin) * 0.18;
+    yMin -= pad; yMax += pad;
 
-    renderShotRow();
+    function xScale(dayIdx){ return plotX0 + (dayIdx / dim) * plotW; }
+    function yScale(v){ return plotY0 + (yMax - v) / (yMax - yMin) * plotH; }
 
-    Array.prototype.forEach.call(document.querySelectorAll("#fDirection button"), function(b){
-      b.addEventListener("click", function(){
-        Array.prototype.forEach.call(document.querySelectorAll("#fDirection button"), function(x){
-          x.classList.remove("active","long","short");
-        });
-        b.classList.add("active", b.getAttribute("data-dir"));
-        updatePnlHint();
-      });
-    });
-    ["fEntry","fExit","fQty"].forEach(function(id){
-      document.getElementById(id).addEventListener("input", updatePnlHint);
-    });
-    updatePnlHint();
-    document.getElementById("fBeToggle").addEventListener("click", function(){
-      this.classList.toggle("active");
-    });
-
-    document.getElementById("fCancel").addEventListener("click", function(){
-      if (trade) renderModalList(); else renderModalList();
-    });
-    document.getElementById("fSave").addEventListener("click", saveForm);
-    document.getElementById("fShotInput").addEventListener("change", handleShotUpload);
-  }
-
-  function currentDirection(){
-    var active = document.querySelector("#fDirection button.active");
-    return active ? active.getAttribute("data-dir") : null;
-  }
-
-  function isBEChecked(){
-    var el = document.getElementById("fBeToggle");
-    return !!(el && el.classList.contains("active"));
-  }
-
-  function updatePnlHint(){
-    var entry = parseFloat(document.getElementById("fEntry").value);
-    var exit = parseFloat(document.getElementById("fExit").value);
-    var qty = parseFloat(document.getElementById("fQty").value);
-    var hint = document.getElementById("pnlHint");
-    if (!isNaN(entry) && !isNaN(exit) && !isNaN(qty)){
-      var dir = currentDirection() || "long";
-      var calc = (exit - entry) * qty * (dir === "short" ? -1 : 1);
-      hint.innerHTML = "예상 손익 " + '<span class="num">' + fmtMoney(calc) + '</span>' + ' <button type="button" id="applyCalc">적용</button>';
-      document.getElementById("applyCalc").addEventListener("click", function(){
-        document.getElementById("fPnl").value = calc.toFixed(2);
-      });
-    } else {
-      hint.textContent = "진입가·청산가·수량을 입력하면 예상 손익을 계산해드려요.";
-    }
-  }
-
-  function renderShotRow(){
-    var row = document.getElementById("shotRow");
-    if (state.formShot){
-      row.innerHTML = '<div class="shot-preview"><img src="' + state.formShot.url + '" alt="스크린샷 미리보기"><button type="button" class="shot-remove" id="shotRemoveBtn">×</button></div>' +
-        '<span class="stat-sub">스크린샷 첨부됨</span>';
-      document.getElementById("shotRemoveBtn").addEventListener("click", function(){
-        var old = state.formShot;
-        state.formShot = null;
-        renderShotRow();
-        if (old && state.assetsNS) state.assetsNS.delete(old.id).catch(function(){});
-      });
-    } else {
-      row.innerHTML = '<button type="button" class="shot-upload-btn" id="shotUploadBtn">이미지 선택</button>';
-      document.getElementById("shotUploadBtn").addEventListener("click", function(){
-        document.getElementById("fShotInput").click();
-      });
-    }
-  }
-
-  async function handleShotUpload(e){
-    var file = e.target.files[0];
-    if (!file) return;
-    if (!state.assetsNS){
-      showFormError("스크린샷 업로드를 사용할 수 없습니다.");
-      return;
-    }
-    var row = document.getElementById("shotRow");
-    row.innerHTML = '<span class="stat-sub">업로드 중…</span>';
-    try{
-      var res = await state.assetsNS.upload(file);
-      var oldShot = state.formShot;
-      state.formShot = {id: res.id, url: res.url};
-      renderShotRow();
-      if (oldShot) state.assetsNS.delete(oldShot.id).catch(function(){});
-    }catch(err){
-      showFormError("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
-      renderShotRow();
-    }
-  }
-
-  function showFormError(msg){
-    var el = document.getElementById("formError");
-    if (!el) return;
-    el.textContent = msg;
-    el.hidden = false;
-  }
-
-  async function saveForm(){
-    var pnlRaw = document.getElementById("fPnl").value.trim();
-    if (pnlRaw === "" || isNaN(parseFloat(pnlRaw))){
-      showFormError("손익 금액을 입력해주세요.");
-      document.getElementById("fPnl").focus();
-      return;
-    }
-    if (!state.dbNS){
-      showFormError("데이터 저장을 사용할 수 없습니다.");
-      return;
-    }
-    var symbol = document.getElementById("fSymbol").value.trim();
-    var dateVal = document.getElementById("fDate").value || state.selectedDate;
-    var entry = document.getElementById("fEntry").value;
-    var exit = document.getElementById("fExit").value;
-    var qty = document.getElementById("fQty").value;
-    var notes = document.getElementById("fNotes").value.trim();
-    var tagsRaw = document.getElementById("fTags").value.trim();
-    var tags = tagsRaw ? tagsRaw.split(",").map(function(t){ return t.trim(); }).filter(Boolean) : [];
-
-    var data = {
-      date: dateVal,
-      symbol: symbol || null,
-      direction: currentDirection(),
-      entryPrice: entry === "" ? null : parseFloat(entry),
-      exitPrice: exit === "" ? null : parseFloat(exit),
-      quantity: qty === "" ? null : parseFloat(qty),
-      pnl: parseFloat(pnlRaw),
-      isBE: isBEChecked(),
-      notes: notes,
-      tags: tags,
-      screenshotId: state.formShot ? state.formShot.id : null,
-      updatedAt: new Date().toISOString()
+    var dd = getMonthDrawdown(mc);
+    chartState = {
+      dim: dim, mode: "equity", cum: cum, dd: dd.dd, peak: dd.peak,
+      xScale: xScale, yScale: yScale, plotX0: plotX0, plotX1: plotX1, plotY0: plotY0, plotY1: plotY1
     };
 
-    var saveBtn = document.getElementById("fSave");
-    saveBtn.disabled = true;
-    try{
-      if (state.editingTradeId){
-        await state.dbNS.collection("trades").doc(state.editingTradeId).update(data);
+    var zeroY = yScale(0);
+    var ticks = niceTicks(yMin, yMax, 4);
+
+    var svgParts = [];
+    svgParts.push('<defs>' +
+      '<clipPath id="clipTop"><rect x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + Math.max(0, zeroY - plotY0) + '"/></clipPath>' +
+      '<clipPath id="clipBottom"><rect x="' + plotX0 + '" y="' + zeroY + '" width="' + plotW + '" height="' + Math.max(0, plotY1 - zeroY) + '"/></clipPath>' +
+      '</defs>');
+
+    // gridlines + y-axis labels
+    ticks.forEach(function(t){
+      var y = yScale(t);
+      svgParts.push('<line class="chart-gridline" x1="' + plotX0 + '" y1="' + y + '" x2="' + plotX1 + '" y2="' + y + '"/>');
+      svgParts.push('<text class="chart-axis-text" x="' + (plotX0 - 8) + '" y="' + (y + 3) + '" text-anchor="end">' + axisTick(t) + '</text>');
+    });
+    // zero reference line (slightly brighter than regular gridlines)
+    svgParts.push('<line class="chart-zeroline" x1="' + plotX0 + '" y1="' + zeroY + '" x2="' + plotX1 + '" y2="' + zeroY + '"/>');
+
+    // x-axis day ticks
+    var xTickDays = [];
+    for (var td = 1; td <= dim; td += 5) xTickDays.push(td);
+    if (xTickDays[xTickDays.length-1] !== dim) xTickDays.push(dim);
+    xTickDays.forEach(function(td){
+      var x = xScale(td);
+      svgParts.push('<text class="chart-axis-text" x="' + x + '" y="' + (plotY1 + 18) + '" text-anchor="middle">' + td + '일</text>');
+    });
+
+    // line + points
+    var linePts = [];
+    for (var i = 0; i <= dim; i++) linePts.push(xScale(i) + ',' + yScale(cum[i]));
+    var lineD = 'M' + linePts.join(' L');
+    var areaD = 'M' + xScale(0) + ',' + zeroY + ' L' + linePts.join(' L') + ' L' + xScale(dim) + ',' + zeroY + ' Z';
+
+    svgParts.push('<path d="' + areaD + '" fill="var(--green)" opacity="0.10" clip-path="url(#clipTop)"/>');
+    svgParts.push('<path d="' + areaD + '" fill="var(--red)" opacity="0.10" clip-path="url(#clipBottom)"/>');
+    svgParts.push('<path d="' + lineD + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    // end marker + end label
+    var endX = xScale(dim), endY = yScale(cum[dim]);
+    var endColor = cum[dim] >= 0 ? "var(--green)" : "var(--red)";
+    svgParts.push('<circle cx="' + endX + '" cy="' + endY + '" r="5" fill="' + endColor + '" stroke="var(--panel)" stroke-width="2"/>');
+    var labelRight = endX + 10;
+    var labelFlip = labelRight + 70 > CHART_W; // flip label to the left if it would overflow
+    var labelX = labelFlip ? endX - 10 : labelRight;
+    var labelAnchor = labelFlip ? "end" : "start";
+    svgParts.push('<text class="chart-endlabel-usd" x="' + labelX + '" y="' + (endY - 6) + '" text-anchor="' + labelAnchor + '" fill="' + endColor + '">' + fmtUsd(cum[dim]) + '</text>');
+    svgParts.push('<text class="chart-endlabel-krw" x="' + labelX + '" y="' + (endY + 10) + '" text-anchor="' + labelAnchor + '">' + fmtKrw(cum[dim]) + '</text>');
+
+    // crosshair (hidden by default, shown on hover) + hit layer
+    svgParts.push('<line class="chart-crosshair" id="chartCrosshair" x1="0" y1="' + plotY0 + '" x2="0" y2="' + plotY1 + '"/>');
+    svgParts.push('<circle id="chartHoverDot" r="4.5" fill="var(--accent)" stroke="var(--panel)" stroke-width="2" style="opacity:0;pointer-events:none;"/>');
+    svgParts.push('<rect class="chart-hit" id="chartHit" x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + plotH + '"/>');
+
+    var svgEl = document.getElementById("trendChart");
+    svgEl.setAttribute("viewBox", "0 0 " + CHART_W + " " + CHART_H);
+    svgEl.innerHTML = svgParts.join("");
+
+    attachChartInteraction(svgEl);
+  }
+
+  function renderDrawdownChart(mc){
+    var useR = riskR > 0;
+    document.getElementById("chartTitle").textContent = "이번 달 Drawdown Curve";
+    document.getElementById("chartSub").textContent = useR
+      ? "peak(최고 누적 자산) 대비 현재 낙폭 — R 기준 (장기 데이터가 쌓일수록 유용해집니다)"
+      : "peak(최고 누적 자산) 대비 현재 낙폭 — $ 기준 (1R을 설정하면 R 단위로 표시됩니다)";
+
+    var dim = mc.dim;
+    var ddInfo = getMonthDrawdown(mc);
+    var ddDollar = ddInfo.dd, peakArr = ddInfo.peak;
+    var yVals = useR ? ddDollar.map(function(v){ return v / riskR; }) : ddDollar;
+
+    var plotX0 = CHART_M.left, plotX1 = CHART_W - CHART_M.right;
+    var plotY0 = CHART_M.top, plotY1 = CHART_H - CHART_M.bottom;
+    var plotW = plotX1 - plotX0, plotH = plotY1 - plotY0;
+
+    var yMin = Math.min.apply(null, yVals.concat([0]));
+    var yMax = 0; // drawdown is always <= 0, so the top of the axis is pinned at 0
+    if (yMin === 0) yMin = useR ? -1 : -100; // flat "no drawdown yet" month still gets a visible axis
+    var padAmt = (yMax - yMin) * 0.15;
+    yMin -= padAmt;
+
+    function xScale(dayIdx){ return plotX0 + (dayIdx / dim) * plotW; }
+    function yScale(v){ return plotY0 + (yMax - v) / (yMax - yMin) * plotH; }
+
+    chartState = {
+      dim: dim, mode: "drawdown", cum: mc.cum, dd: ddDollar, peak: peakArr, ddUnit: yVals,
+      xScale: xScale, yScale: yScale, plotX0: plotX0, plotX1: plotX1, plotY0: plotY0, plotY1: plotY1
+    };
+
+    var zeroY = yScale(0);
+    var ticks = useR ? niceTicks(yMin, yMax, 4) : niceTicks(yMin, yMax, 4);
+    if (ticks.indexOf(0) === -1) ticks.push(0);
+
+    var svgParts = [];
+
+    // gridlines + y-axis labels (0R, -1R, -2R, -3R style)
+    ticks.forEach(function(t){
+      var y = yScale(t);
+      svgParts.push('<line class="chart-gridline" x1="' + plotX0 + '" y1="' + y + '" x2="' + plotX1 + '" y2="' + y + '"/>');
+      var label = useR ? axisTickR(t) : axisTick(t);
+      svgParts.push('<text class="chart-axis-text" x="' + (plotX0 - 8) + '" y="' + (y + 3) + '" text-anchor="end">' + label + '</text>');
+    });
+    // zero / peak reference line
+    svgParts.push('<line class="chart-zeroline" x1="' + plotX0 + '" y1="' + zeroY + '" x2="' + plotX1 + '" y2="' + zeroY + '"/>');
+
+    // x-axis day ticks
+    var xTickDays = [];
+    for (var td = 1; td <= dim; td += 5) xTickDays.push(td);
+    if (xTickDays[xTickDays.length-1] !== dim) xTickDays.push(dim);
+    xTickDays.forEach(function(td){
+      var x = xScale(td);
+      svgParts.push('<text class="chart-axis-text" x="' + x + '" y="' + (plotY1 + 18) + '" text-anchor="middle">' + td + '일</text>');
+    });
+
+    // line + single area fill (always at/below zero, no diverging split needed)
+    var linePts = [];
+    for (var i = 0; i <= dim; i++) linePts.push(xScale(i) + ',' + yScale(yVals[i]));
+    var lineD = 'M' + linePts.join(' L');
+    var areaD = 'M' + xScale(0) + ',' + zeroY + ' L' + linePts.join(' L') + ' L' + xScale(dim) + ',' + zeroY + ' Z';
+
+    svgParts.push('<path d="' + areaD + '" fill="var(--red)" opacity="0.12"/>');
+    svgParts.push('<path d="' + lineD + '" fill="none" stroke="var(--red)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>');
+
+    // end marker + end label
+    var endX = xScale(dim), endY = yScale(yVals[dim]);
+    var atPeak = ddDollar[dim] === 0;
+    var endColor = atPeak ? "var(--green)" : "var(--red)";
+    svgParts.push('<circle cx="' + endX + '" cy="' + endY + '" r="5" fill="' + endColor + '" stroke="var(--panel)" stroke-width="2"/>');
+    var labelRight = endX + 10;
+    var labelFlip = labelRight + 70 > CHART_W;
+    var labelX = labelFlip ? endX - 10 : labelRight;
+    var labelAnchor = labelFlip ? "end" : "start";
+    var endLabelMain = useR ? (atPeak ? "0.00R" : fmtR(yVals[dim])) : fmtUsd(ddDollar[dim]);
+    svgParts.push('<text class="chart-endlabel-usd" x="' + labelX + '" y="' + (endY - 6) + '" text-anchor="' + labelAnchor + '" fill="' + endColor + '">' + endLabelMain + '</text>');
+    svgParts.push('<text class="chart-endlabel-krw" x="' + labelX + '" y="' + (endY + 10) + '" text-anchor="' + labelAnchor + '">' + fmtUsd(ddDollar[dim]) + '</text>');
+
+    // crosshair (hidden by default, shown on hover) + hit layer
+    svgParts.push('<line class="chart-crosshair" id="chartCrosshair" x1="0" y1="' + plotY0 + '" x2="0" y2="' + plotY1 + '"/>');
+    svgParts.push('<circle id="chartHoverDot" r="4.5" fill="var(--red)" stroke="var(--panel)" stroke-width="2" style="opacity:0;pointer-events:none;"/>');
+    svgParts.push('<rect class="chart-hit" id="chartHit" x="' + plotX0 + '" y="' + plotY0 + '" width="' + plotW + '" height="' + plotH + '"/>');
+
+    var svgEl = document.getElementById("trendChart");
+    svgEl.setAttribute("viewBox", "0 0 " + CHART_W + " " + CHART_H);
+    svgEl.innerHTML = svgParts.join("");
+
+    attachChartInteraction(svgEl);
+  }
+
+  function attachChartInteraction(svgEl){
+    var hit = document.getElementById("chartHit");
+    var crosshair = document.getElementById("chartCrosshair");
+    var hoverDot = document.getElementById("chartHoverDot");
+    var tooltip = document.getElementById("chartTooltip");
+    var wrap = document.getElementById("chartWrap");
+    if (!hit) return;
+
+    function handleMove(evt){
+      var rect = svgEl.getBoundingClientRect();
+      var relX = (evt.clientX - rect.left) / rect.width;
+      var xUser = relX * CHART_W;
+      var dayIdx = Math.round(((xUser - chartState.plotX0) / (chartState.plotX1 - chartState.plotX0)) * chartState.dim);
+      dayIdx = Math.max(0, Math.min(chartState.dim, dayIdx));
+
+      var yPlotVal = chartState.mode === "drawdown" ? chartState.ddUnit[dayIdx] : chartState.cum[dayIdx];
+      var xU = chartState.xScale(dayIdx), yU = chartState.yScale(yPlotVal);
+      crosshair.setAttribute("x1", xU); crosshair.setAttribute("x2", xU);
+      crosshair.style.opacity = 1;
+      hoverDot.setAttribute("cx", xU); hoverDot.setAttribute("cy", yU);
+      hoverDot.style.opacity = 1;
+
+      var wrapRect = wrap.getBoundingClientRect();
+      var pxLeft = (xU / CHART_W) * rect.width + (rect.left - wrapRect.left);
+      var pxTop = (yU / CHART_H) * rect.height + (rect.top - wrapRect.top);
+
+      var dayAggInfo = dayIdx > 0 ? dayAgg(journalData[dateKey(currentYear, currentMonth, dayIdx)]) : { count: 0, pnl: 0 };
+      var dayPnl = dayAggInfo.pnl;
+      var dateLabel = dayIdx === 0 ? (currentMonth + "월 시작") : (currentMonth + "월 " + dayIdx + "일");
+
+      var html, vEls;
+      if (chartState.mode === "drawdown"){
+        var useR = riskR > 0;
+        var ddVal = chartState.dd[dayIdx];
+        html = '<div class="date"></div>' +
+          '<div class="row"><span class="k">Drawdown</span><span class="v"></span></div>' +
+          '<div class="row"><span class="k">Peak 자산</span><span class="v"></span></div>';
+        if (dayIdx > 0){
+          html += '<div class="row"><span class="k">당일 P&amp;L</span><span class="v"></span></div>';
+          if (dayAggInfo.count > 0) html += '<div class="row"><span class="k">거래횟수</span><span class="v">' + dayAggInfo.count + '회</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.querySelector(".date").textContent = dateLabel;
+        vEls = tooltip.querySelectorAll(".v");
+        var ddText = useR ? ((ddVal === 0 ? "0.00R" : fmtR(ddVal / riskR)) + " (" + fmtUsd(ddVal) + ")") : fmtUsd(ddVal);
+        vEls[0].textContent = ddText;
+        vEls[1].textContent = fmtUsd(chartState.peak[dayIdx]);
+        if (dayIdx > 0) vEls[2].textContent = fmtUsd(dayPnl) + " (" + fmtKrw(dayPnl) + ")";
       } else {
-        data.createdAt = data.updatedAt;
-        await state.dbNS.collection("trades").add(data);
+        html = '<div class="date"></div>' +
+          '<div class="row"><span class="k">누적 P&amp;L</span><span class="v"></span></div>';
+        if (dayIdx > 0){
+          html += '<div class="row"><span class="k">당일 P&amp;L</span><span class="v"></span></div>';
+          if (dayAggInfo.count > 0) html += '<div class="row"><span class="k">거래횟수</span><span class="v">' + dayAggInfo.count + '회</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.querySelector(".date").textContent = dateLabel;
+        vEls = tooltip.querySelectorAll(".v");
+        vEls[0].textContent = fmtUsd(chartState.cum[dayIdx]) + " (" + fmtKrw(chartState.cum[dayIdx]) + ")";
+        if (dayIdx > 0) vEls[1].textContent = fmtUsd(dayPnl) + " (" + fmtKrw(dayPnl) + ")";
       }
-      state.editingTradeId = null;
-      state.formShot = null;
-      if (dateVal !== state.selectedDate){
-        state.selectedDate = dateVal;
-      }
-      renderModalList();
-    }catch(err){
-      console.error("save failed", err);
-      showFormError("저장에 실패했습니다. 다시 시도해주세요.");
-      saveBtn.disabled = false;
+
+      tooltip.style.display = "block";
+      tooltip.style.left = pxLeft + "px";
+      tooltip.style.top = pxTop + "px";
     }
+    function handleLeave(){
+      crosshair.style.opacity = 0;
+      hoverDot.style.opacity = 0;
+      tooltip.style.display = "none";
+    }
+    hit.addEventListener("pointermove", handleMove);
+    hit.addEventListener("pointerleave", handleLeave);
   }
 
-  /* ---------------- lightbox ---------------- */
-  var lightbox = document.getElementById("lightbox");
-  function openLightbox(src){
-    document.getElementById("lightboxImg").src = src;
-    lightbox.classList.add("open");
+  // ---- modal (per-trade entry) ----
+  var modalTrades = []; // working array of Number|null while the modal is open
+
+  function openModal(key, y, m, d){
+    selectedKey = key;
+    document.getElementById("modalDate").textContent = y + "년 " + m + "월 " + d + "일";
+    var entry = journalData[key];
+    modalTrades = (entry && entry.trades && entry.trades.length) ? entry.trades.slice() : [null];
+    renderTradeRows();
+    document.getElementById("modalBackdrop").classList.add("show");
+    var firstInput = document.querySelector("#tradeRows .trade-input");
+    if (firstInput) firstInput.focus();
   }
-  function closeLightbox(){
-    lightbox.classList.remove("open");
-    setTimeout(function(){
-      if (!lightbox.classList.contains("open")) document.getElementById("lightboxImg").src = "";
-    }, 220);
+  function closeModal(){
+    document.getElementById("modalBackdrop").classList.remove("show");
+    selectedKey = null;
+    modalTrades = [];
   }
 
-  /* ---------------- swipe pager ---------------- */
-  function setPage(index, animate){
-    index = Math.max(0, Math.min(1, index));
-    pageIndex = index;
-    var track = document.getElementById("pagerTrack");
-    if (animate === false){ track.classList.add("dragging"); }
-    track.style.transform = "translateX(-" + (index * 50) + "%)";
-    if (animate === false){
-      // force reflow then restore transition
-      void track.offsetHeight;
-      track.classList.remove("dragging");
-    }
-    Array.prototype.forEach.call(document.querySelectorAll("#pageTabs button"), function(b){
-      b.classList.toggle("active", Number(b.getAttribute("data-page")) === index);
+  function renderTradeRows(){
+    var container = document.getElementById("tradeRows");
+    var html = "";
+    modalTrades.forEach(function(v, i){
+      var rHint = (riskR > 0 && v !== null && !isNaN(v)) ? ((v/riskR >= 0 ? "+" : "") + (v/riskR).toFixed(2) + "R") : "";
+      html += '<div class="trade-row">' +
+        '<span class="idx">' + (i+1) + '</span>' +
+        '<input type="number" step="1" class="trade-input" data-i="' + i + '" value="' + (v === null ? "" : v) + '" placeholder="$">' +
+        '<span class="r-hint">' + rHint + '</span>' +
+        '<button type="button" class="remove-row" data-i="' + i + '">×</button>' +
+        '</div>';
     });
-    syncPagerHeight();
-  }
+    container.innerHTML = html;
 
-  function wirePager(){
-    var viewport = document.getElementById("pagerViewport");
-    var track = document.getElementById("pagerTrack");
-    Array.prototype.forEach.call(document.querySelectorAll("#pageTabs button"), function(b){
-      b.addEventListener("click", function(){
-        setPage(Number(b.getAttribute("data-page")));
+    container.querySelectorAll(".trade-input").forEach(function(inp){
+      inp.addEventListener("input", function(){
+        var i = parseInt(this.dataset.i, 10);
+        var v = parseFloat(this.value);
+        modalTrades[i] = isNaN(v) ? null : v;
+        var rowEl = this.closest(".trade-row");
+        var rHintEl = rowEl.querySelector(".r-hint");
+        rHintEl.textContent = (riskR > 0 && modalTrades[i] !== null) ?
+          ((modalTrades[i]/riskR >= 0 ? "+" : "") + (modalTrades[i]/riskR).toFixed(2) + "R") : "";
+        updateModalSummary();
       });
     });
-
-    var startX = 0, startY = 0, dx = 0, decided = null, baseIndex = 0;
-
-    viewport.addEventListener("touchstart", function(e){
-      if (e.touches.length !== 1) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      dx = 0;
-      decided = null;
-      baseIndex = pageIndex;
-    }, { passive: true });
-
-    viewport.addEventListener("touchmove", function(e){
-      if (e.touches.length !== 1) return;
-      var x = e.touches[0].clientX, y = e.touches[0].clientY;
-      dx = x - startX;
-      var dy = y - startY;
-      if (decided === null){
-        if (Math.abs(dx) > 8 || Math.abs(dy) > 8){
-          decided = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
-          if (decided === "h") track.classList.add("dragging");
-        }
-      }
-      if (decided === "h"){
-        e.preventDefault();
-        var effectiveDx = dx;
-        if ((baseIndex === 0 && dx > 0) || (baseIndex === 1 && dx < 0)){
-          effectiveDx = dx * 0.35; // rubber-band at the edges
-        }
-        var pct = (baseIndex * 50) - (effectiveDx / viewport.clientWidth * 50);
-        track.style.transform = "translateX(-" + pct + "%)";
-      }
-    }, { passive: false });
-
-    viewport.addEventListener("touchend", function(){
-      if (decided === "h"){
-        track.classList.remove("dragging");
-        var threshold = viewport.clientWidth * 0.18;
-        var next = baseIndex;
-        if (dx < -threshold) next = baseIndex + 1;
-        else if (dx > threshold) next = baseIndex - 1;
-        setPage(next);
-      }
-      decided = null; dx = 0;
-    });
-    viewport.addEventListener("touchcancel", function(){
-      if (decided === "h"){ track.classList.remove("dragging"); setPage(baseIndex); }
-      decided = null; dx = 0;
-    });
-  }
-
-  /* ---------------- static wiring ---------------- */
-  function wireStaticEvents(){
-    document.getElementById("prevMonth").addEventListener("click", function(){
-      state.viewMonth--;
-      if (state.viewMonth < 0){ state.viewMonth = 11; state.viewYear--; }
-      render();
-      subscribeMonth();
-      maybeResyncYear();
-    });
-    document.getElementById("nextMonth").addEventListener("click", function(){
-      state.viewMonth++;
-      if (state.viewMonth > 11){ state.viewMonth = 0; state.viewYear++; }
-      render();
-      subscribeMonth();
-      maybeResyncYear();
-    });
-    document.getElementById("todayBtn").addEventListener("click", function(){
-      state.viewYear = today.getFullYear();
-      state.viewMonth = today.getMonth();
-      render();
-      subscribeMonth();
-      maybeResyncYear();
-    });
-    Array.prototype.forEach.call(document.querySelectorAll("#scopeToggle button"), function(btn){
+    container.querySelectorAll(".remove-row").forEach(function(btn){
       btn.addEventListener("click", function(){
-        var scope = btn.getAttribute("data-scope");
-        if (scope === state.statsScope) return;
-        state.statsScope = scope;
-        Array.prototype.forEach.call(document.querySelectorAll("#scopeToggle button"), function(b){
-          b.classList.toggle("active", b === btn);
-        });
-        if (scope === "year") subscribeYear();
+        var i = parseInt(this.dataset.i, 10);
+        modalTrades.splice(i, 1);
+        if (modalTrades.length === 0) modalTrades = [null];
+        renderTradeRows();
+      });
+    });
+    updateModalSummary();
+  }
+
+  function updateModalSummary(){
+    var valid = modalTrades.filter(function(v){ return v !== null && !isNaN(v); });
+    var sum = valid.reduce(function(a,b){ return a+b; }, 0);
+    var el = document.getElementById("modalSummary");
+    el.innerHTML = "총 <b>" + valid.length + "건</b> · 합계 <b>" + fmtUsd(sum) + "</b> (" + fmtKrw(sum) + ")";
+  }
+
+  document.getElementById("addTradeBtn").addEventListener("click", function(){
+    modalTrades.push(null);
+    renderTradeRows();
+    var inputs = document.querySelectorAll("#tradeRows .trade-input");
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", function(){
+    if (!selectedKey) return;
+    var valid = modalTrades.filter(function(v){ return v !== null && !isNaN(v); });
+    if (valid.length === 0){
+      delete journalData[selectedKey];
+    } else {
+      journalData[selectedKey] = { trades: valid };
+    }
+    closeModal();
+    render();
+  });
+  document.getElementById("clearBtn").addEventListener("click", function(){
+    if (selectedKey) delete journalData[selectedKey];
+    closeModal();
+    render();
+  });
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  document.getElementById("modalBackdrop").addEventListener("click", function(e){
+    if (e.target.id === "modalBackdrop") closeModal();
+  });
+  document.addEventListener("keydown", function(e){
+    if (e.key === "Escape") closeModal();
+  });
+
+  // ---- navigation ----
+  document.getElementById("prevBtn").addEventListener("click", function(){
+    currentMonth--;
+    if (currentMonth < 1){ currentMonth = 12; currentYear--; }
+    render();
+  });
+  document.getElementById("nextBtn").addEventListener("click", function(){
+    currentMonth++;
+    if (currentMonth > 12){ currentMonth = 1; currentYear++; }
+    render();
+  });
+  document.getElementById("todayBtn").addEventListener("click", function(){
+    var t = new Date();
+    currentYear = t.getFullYear();
+    currentMonth = t.getMonth() + 1;
+    render();
+  });
+
+  // ---- export / import (no browser storage available; file-based persistence) ----
+  document.getElementById("exportBtn").addEventListener("click", function(){
+    var blob = new Blob([JSON.stringify(journalData, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "stock_journal_data.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("importFile").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt){
+      try{
+        var imported = JSON.parse(evt.target.result);
+        Object.assign(journalData, imported);
         render();
-      });
-    });
-    document.getElementById("addTradeBtn").addEventListener("click", function(){
-      var dstr = state.selectedDate || todayStr();
-      openDayModal(dstr);
-      openForm(null);
-    });
-    document.getElementById("modalCloseBtn").addEventListener("click", closeDayModal);
-    document.getElementById("modalBackBtn").addEventListener("click", function(){ renderModalList(); });
-    dayModal.addEventListener("click", function(e){ if (e.target === dayModal) closeDayModal(); });
+      } catch(err){
+        alert("JSON 파일을 읽을 수 없습니다: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
 
-    var settingsBtn = document.getElementById("settingsBtn");
-    var settingsPopover = document.getElementById("settingsPopover");
-    settingsBtn.addEventListener("click", function(e){
-      e.stopPropagation();
-      settingsPopover.hidden = !settingsPopover.hidden;
-      if (!settingsPopover.hidden){
-        document.getElementById("currencyInput").value = state.currency;
-        document.getElementById("krwRateInput").value = state.krwRate;
-        document.getElementById("startingCapitalInput").value = state.startingCapital || "";
-      }
-    });
-    document.addEventListener("click", function(e){
-      if (!settingsPopover.hidden && !settingsPopover.contains(e.target) && e.target !== settingsBtn){
-        settingsPopover.hidden = true;
-      }
-    });
-    var currencyInput = document.getElementById("currencyInput");
-    var krwRateInput = document.getElementById("krwRateInput");
-    var startingCapitalInput = document.getElementById("startingCapitalInput");
-    currencyInput.value = state.currency;
-    krwRateInput.value = state.krwRate;
-    startingCapitalInput.value = state.startingCapital || "";
-    function saveSettings(){
-      var val = currencyInput.value.trim() || "$";
-      var rateVal = parseFloat(krwRateInput.value);
-      if (!rateVal || rateVal <= 0) rateVal = state.krwRate;
-      var capVal = parseFloat(startingCapitalInput.value);
-      if (!isFinite(capVal) || capVal < 0) capVal = 0;
-      state.currency = val;
-      state.krwRate = rateVal;
-      state.startingCapital = capVal;
+  // ---- exchange rate (USD -> KRW) ----
+  var rateInputEl = document.getElementById("rateInput");
+  var rateStatusEl = document.getElementById("rateStatus");
+  rateInputEl.value = exchangeRate;
+
+  rateInputEl.addEventListener("change", function(){
+    var v = parseFloat(rateInputEl.value);
+    if (!isNaN(v) && v > 0){
+      exchangeRate = v;
+      rateStatusEl.textContent = "수동 입력값 사용 중";
       render();
-      if (state.dbNS){
-        state.dbNS.doc("settings/general").set({currency: val, krwRate: rateVal, startingCapital: capVal}).catch(function(){});
-      }
     }
-    currencyInput.addEventListener("change", saveSettings);
-    currencyInput.addEventListener("keydown", function(e){ if (e.key === "Enter"){ saveSettings(); settingsPopover.hidden = true; } });
-    krwRateInput.addEventListener("change", saveSettings);
-    krwRateInput.addEventListener("keydown", function(e){ if (e.key === "Enter"){ saveSettings(); settingsPopover.hidden = true; } });
-    startingCapitalInput.addEventListener("change", saveSettings);
-    startingCapitalInput.addEventListener("keydown", function(e){ if (e.key === "Enter"){ saveSettings(); settingsPopover.hidden = true; } });
+  });
 
-    var exportDataBtn = document.getElementById("exportDataBtn");
-    var importDataBtn = document.getElementById("importDataBtn");
-    var importDataInput = document.getElementById("importDataInput");
-    if (exportDataBtn){
-      exportDataBtn.addEventListener("click", function(){
-        if (typeof window.__exportAllData !== "function"){
-          alert("이 환경에서는 내보내기를 사용할 수 없어요.");
-          return;
+  function fetchLiveRate(){
+    rateStatusEl.textContent = "환율 불러오는 중...";
+    fetch("https://api.frankfurter.app/latest?from=USD&to=KRW")
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if (data && data.rates && data.rates.KRW){
+          exchangeRate = data.rates.KRW;
+          rateInputEl.value = Math.round(exchangeRate * 100) / 100;
+          rateStatusEl.textContent = "실시간 환율 적용 (" + (data.date || "") + ")";
+          render();
+        } else {
+          throw new Error("no rate");
         }
-        var payload = window.__exportAllData();
-        var json = JSON.stringify(payload, null, 2);
-        var blob = new Blob([json], {type: "application/json"});
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement("a");
-        var stamp = new Date().toISOString().slice(0,10);
-        a.href = url;
-        a.download = "trading-journal-backup-" + stamp + ".json";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      })
+      .catch(function(){
+        rateStatusEl.textContent = "실시간 환율을 불러오지 못해 기본값(수동 조정 가능) 사용 중";
       });
+  }
+  document.getElementById("refreshRateBtn").addEventListener("click", fetchLiveRate);
+  fetchLiveRate(); // best-effort on load; silently falls back to the default rate if offline/blocked
+
+  // ---- 1R (max loss per trade, in USD) — drives R-multiples, Sharpe, MDD-in-R ----
+  var riskRInputEl = document.getElementById("riskRInput");
+  riskRInputEl.value = riskR;
+  riskRInputEl.addEventListener("change", function(){
+    var v = parseFloat(riskRInputEl.value);
+    riskR = (!isNaN(v) && v >= 0) ? v : 0;
+    render();
+  });
+
+  // ---- "More stats" collapsible toggle ----
+  var moreStatsBtn = document.getElementById("moreStatsBtn");
+  var statsSecondaryEl = document.getElementById("statsSecondary");
+  moreStatsBtn.addEventListener("click", function(){
+    var isHidden = statsSecondaryEl.hasAttribute("hidden");
+    if (isHidden){
+      statsSecondaryEl.removeAttribute("hidden");
+      moreStatsBtn.classList.add("open");
+    } else {
+      statsSecondaryEl.setAttribute("hidden", "");
+      moreStatsBtn.classList.remove("open");
     }
-    if (importDataBtn && importDataInput){
-      importDataBtn.addEventListener("click", function(){ importDataInput.click(); });
-      importDataInput.addEventListener("change", function(){
-        var file = importDataInput.files && importDataInput.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function(){
-          var payload;
-          try{
-            payload = JSON.parse(String(reader.result));
-          }catch(e){
-            alert("파일을 읽을 수 없어요. JSON 백업 파일이 맞는지 확인해주세요.");
-            importDataInput.value = "";
-            return;
-          }
-          var replaceAll = confirm(
-            "불러오기 방식을 선택해주세요.\n\n" +
-            "확인 = 전체 교체 (현재 브라우저에 저장된 모든 거래·설정을 지우고 백업 파일 내용으로 덮어써요)\n" +
-            "취소 = 병합 (같은 ID의 거래만 백업 내용으로 덮어쓰고 나머지는 그대로 둬요)"
-          );
-          if (typeof window.__importAllData !== "function"){
-            alert("이 환경에서는 불러오기를 사용할 수 없어요.");
-            importDataInput.value = "";
-            return;
-          }
-          window.__importAllData(payload, replaceAll ? "replace" : "merge").then(function(){
-            alert("불러오기가 완료됐어요.");
-            settingsPopover.hidden = true;
-            if (state.dbNS){
-              subscribeSettings();
-              if (state.statsScope === "year"){ subscribeYear(); } else { subscribeMonth(); }
-            }
-          }).catch(function(err){
-            console.error(err);
-            alert("불러오기 중 오류가 발생했어요.");
-          }).then(function(){
-            importDataInput.value = "";
-          });
-        };
-        reader.readAsText(file);
-      });
-    }
+  });
 
-    lightbox.addEventListener("click", function(e){ if (e.target === lightbox || e.target.id === "lightboxClose") closeLightbox(); });
-    document.getElementById("lightboxClose").addEventListener("click", closeLightbox);
+  // ---- Equity / Drawdown chart tabs ----
+  var tabEquityBtn = document.getElementById("tabEquity");
+  var tabDrawdownBtn = document.getElementById("tabDrawdown");
+  function setChartMode(mode){
+    chartMode = mode;
+    tabEquityBtn.classList.toggle("active", mode === "equity");
+    tabDrawdownBtn.classList.toggle("active", mode === "drawdown");
+    renderChart();
+  }
+  tabEquityBtn.addEventListener("click", function(){ setChartMode("equity"); });
+  tabDrawdownBtn.addEventListener("click", function(){ setChartMode("drawdown"); });
 
-    document.addEventListener("keydown", function(e){
-      if (e.key === "Escape"){
-        if (lightbox.classList.contains("open")) closeLightbox();
-        else if (dayModal.classList.contains("open")) closeDayModal();
-      }
-    });
-  }
-
-  if (window.claude && window.claude.hot && typeof window.claude.hot.snapshot === "function"){
-    window.claude.hot.snapshot(function(){
-      return {
-        viewYear: state.viewYear,
-        viewMonth: state.viewMonth,
-        dayModalOpen: dayModal.classList.contains("open"),
-        selectedDate: state.selectedDate,
-        pageIndex: pageIndex,
-        statsScope: state.statsScope
-      };
-    });
-  }
-  if (window.claude && window.claude.hot && window.claude.hot.ready){
-    window.claude.hot.ready(start);
-  } else {
-    start((window.claude && window.claude.hot && window.claude.hot.data) || null);
-  }
+  render();
 })();
 </script>
-
 </body>
 </html>
